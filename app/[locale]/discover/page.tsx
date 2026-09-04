@@ -4,7 +4,8 @@ import { getDict } from "@/lib/dictionaries";
 import { isLocale, localePath, type Locale } from "@/lib/i18n";
 import { services, matrixNeeds, matrixColumns } from "@/lib/data/services";
 import { stages, createFramework } from "@/lib/data/tools";
-import { Concierge, DiscoveryWidget } from "@/components/Discovery";
+import { DiscoveryWidget } from "@/components/Discovery";
+import ConciergeChat from "@/components/ConciergeChat";
 import { Badge, Btn, Card, PageHero, Section, SectionHeading } from "@/components/ui";
 import Reveal from "@/components/Reveal";
 
@@ -63,10 +64,10 @@ export default async function Discover({ params }: { params: Promise<{ locale: s
       {/* concierge */}
       <Section className="py-20">
         <Reveal>
-          <SectionHeading kicker="AI Concierge" title="Tell us what you're working on." sub="Five questions. A recommended approach, supporting services and a suggested project structure — instantly." />
+          <SectionHeading kicker="AI Concierge" title="Tell us what you're working on." sub="Chat with the concierge — five questions, a free-text brain-dump, and a recommended approach with phases, risks and open questions." />
         </Reveal>
         <Reveal delay={60}>
-          <Concierge locale={locale} dict={d} services={serviceLite} />
+          <ConciergeChat locale={locale} dict={d} />
         </Reveal>
       </Section>
 

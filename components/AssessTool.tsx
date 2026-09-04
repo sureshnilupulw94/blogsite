@@ -3,11 +3,27 @@
 import { useMemo, useState } from "react";
 import type { Dict } from "@/lib/dictionaries";
 import type { AssessmentConfig } from "@/lib/data/tools";
+import { track } from "@/lib/analytics";
 import { MiniCapture } from "./forms";
 import { Badge, Btn, cx } from "./ui";
 import { localePath, type Locale } from "@/lib/i18n";
 
 const scale = ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"];
+
+function scoreOf(config: AssessmentConfig, answers: Record<number, number>): number {
+  const dimScores: Record<string, { sum: number; n: number }> = {};
+  for (const q of config.questions) dimScores[q.dim] ??= { sum: 0, n: 0 };
+  for (const [idx, val] of Object.entries(answers)) {
+    const dim = config.questions[Number(idx)].dim;
+    dimScores[dim].sum += val + 1;
+    dimScores[dim].n += 1;
+  }
+  const pcts = config.dimensions.map((d) => {
+    const s = dimScores[d.key];
+    return s && s.n ? ((s.sum / s.n) - 1) / 4 * 100 : 0;
+  });
+  return Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length);
+}
 
 export default function AssessTool({ locale, dict, config }: { locale: Locale; dict: Dict; config: AssessmentConfig }) {
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -38,7 +54,11 @@ export default function AssessTool({ locale, dict, config }: { locale: Locale; d
   }, [answers, config]);
 
   function answer(value: number) {
-    setAnswers((a) => ({ ...a, [current]: value }));
+    setAnswers((a) => {
+      const next = { ...a, [current]: value };
+      if (current + 1 === total) track("assessment_complete", { tool: config.slug, score: scoreOf(config, next) });
+      return next;
+    });
     if (current + 1 < total) {
       setCurrent(current + 1);
     } else {

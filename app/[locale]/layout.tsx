@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Analytics from "@/components/Analytics";
 import { getDict } from "@/lib/dictionaries";
 import { isLocale, locales, localeMeta, type Locale } from "@/lib/i18n";
 import { site } from "@/lib/data/site";
@@ -50,6 +51,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} dir={dir}>
       <body>
+        <Analytics locale={locale} />
         <Header locale={locale} dict={dict} />
         <main id="main">{children}</main>
         <Footer locale={locale} dict={dict} />

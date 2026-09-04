@@ -2,9 +2,9 @@
 
 > We make complex things clear. · Signal, not noise.
 
-A complete agency-ecosystem website: discovery engine, AI concierge, transformation map,
-interactive assessments and calculators, project brief generator, knowledge hub, podcast,
-7 languages (EN/DE/JA/FR/NL/AR/ES) with full RTL support.
+A complete agency-ecosystem website: discovery engine, **AI concierge (LLM-backed with a rules-engine fallback)**, transformation map,
+interactive assessments, calculators, **4 mini-audits incl. a live website audit**, project brief generator, knowledge hub, podcast,
+**anonymous analytics + an internal Studio CRM (`/admin`)**, 7 languages (EN/DE/JA/FR/NL/AR/ES) with full RTL support.
 
 **Read [`BLUEPRINT.md`](./BLUEPRINT.md) for the full master plan** — every feature from V1 through the future client portal and agency OS, with phase status.
 
@@ -12,9 +12,13 @@ interactive assessments and calculators, project brief generator, knowledge hub,
 
 ```bash
 npm install
+cp .env.example .env.local   # optional: ADMIN_TOKEN + LLM keys for the concierge
 npm run dev      # http://localhost:3000
 npm run build && npm start
 ```
+
+- **Studio CRM**: visit `/admin` (dev token: `flagship-dev` — set `ADMIN_TOKEN` in production)
+- **AI Concierge**: works out of the box (rules engine); set any LLM key from `.env.example` for LLM-grade recommendations
 
 ## Structure
 

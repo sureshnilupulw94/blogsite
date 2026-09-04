@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { Dict } from "@/lib/dictionaries";
+import { track } from "@/lib/analytics";
 import { cx } from "./ui";
 
 async function post(url: string, payload: unknown) {
@@ -111,6 +112,7 @@ export function MiniCapture({ dict, cta, payload }: { dict: Dict; cta: string; p
     setState("sending");
     try {
       await post("/api/leads", { type: "tool", ...payload, ...data });
+      track("lead_submit", { tool: typeof payload.tool === "string" ? payload.tool : typeof payload.type === "string" ? payload.type : "tool" });
       setState("done");
     } catch {
       setState("error");

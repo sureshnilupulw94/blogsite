@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getDict } from "@/lib/dictionaries";
 import { isLocale, localePath, type Locale } from "@/lib/i18n";
 import { assessments, calculators } from "@/lib/data/tools";
-import { Badge, Btn, Card, Icon, PageHero, Section, SectionHeading } from "@/components/ui";
+import { Badge, Btn, Card, Icon, PageHero, Section, SectionHeading, cx } from "@/components/ui";
 import Reveal from "@/components/Reveal";
 
 export default async function Tools({ params }: { params: Promise<{ locale: string }> }) {
@@ -62,6 +62,33 @@ export default async function Tools({ params }: { params: Promise<{ locale: stri
 
         <div className="mt-16">
           <Reveal>
+            <SectionHeading kicker="Mini audits" title="Audit what you have" sub="Four free audits: one live (your website, actually fetched), three honest questionnaires. Findings and fixes included." />
+          </Reveal>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              { slug: "website-audit", name: "Website Audit", desc: "We fetch your page and run 14 checks — SEO, content, UX, conversion.", accent: true },
+              { slug: "presentation-audit", name: "Presentation Audit", desc: "Readability, storytelling, hierarchy, consistency — scored with fixes.", accent: false },
+              { slug: "brand-audit", name: "Brand Audit", desc: "Consistency, messaging, visual identity and asset health.", accent: false },
+              { slug: "process-audit", name: "Business Process Audit", desc: "Maturity, bottlenecks, automation readiness, documentation.", accent: false },
+            ].map((a, i) => (
+              <Reveal key={a.slug} delay={i * 50}>
+                <Link href={p(`tools/${a.slug}`)} className="group block h-full">
+                  <Card hover className={cx("h-full", a.accent && "border-accent/40 bg-accent/5")}>
+                    <div className="flex items-start justify-between">
+                      <Icon name={a.accent ? "globe" : "target"} className={cx("size-7", a.accent ? "text-accent" : "text-mute group-hover:text-accent")} />
+                      <Badge>Live{a.accent ? "" : " questionnaire"}</Badge>
+                    </div>
+                    <h3 className="mt-4 font-display text-lg font-bold group-hover:text-accent">{a.name}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-mute">{a.desc}</p>
+                  </Card>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-16">
+          <Reveal>
             <SectionHeading kicker="Generators" title="Structure your thinking" />
           </Reveal>
           <Reveal delay={60}>
@@ -82,7 +109,7 @@ export default async function Tools({ params }: { params: Promise<{ locale: stri
 
         <div className="mt-16 rounded-2xl border border-line bg-coal p-8 text-center">
           <p className="font-display text-lg font-bold">Tools in the lab</p>
-          <p className="mt-2 text-sm text-mute">Website audit · Presentation audit · Brand audit · Content calendar builder — see the <Link href={p("roadmap")} className="text-accent hover:underline">roadmap</Link>.</p>
+          <p className="mt-2 text-sm text-mute">Content calendar builder · upload→analyze document review — see the <Link href={p("roadmap")} className="text-accent hover:underline">roadmap</Link>.</p>
         </div>
       </Section>
     </>

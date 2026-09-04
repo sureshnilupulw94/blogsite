@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { Dict } from "@/lib/dictionaries";
 import { localePath, type Locale } from "@/lib/i18n";
 import type { CalculatorConfig } from "@/lib/data/tools";
+import { track } from "@/lib/analytics";
 import { Badge, Btn } from "./ui";
 import { MiniCapture } from "./forms";
 
@@ -58,6 +59,11 @@ export default function CalculatorTool({ locale, dict, config }: { locale: Local
   );
 
   const results = useMemo(() => compute(config.slug, values), [config.slug, values]);
+
+  useEffect(() => {
+    track("calculator_use", { tool: config.slug });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">

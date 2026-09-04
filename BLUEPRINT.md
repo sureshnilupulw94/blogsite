@@ -48,17 +48,17 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Website Project Estimator** (complexity → package suggestion)
 - ✅ **Content Cost Calculator** (effort vs retainer)
 - ✅ **Project Brief Generator** — 10-step builder → structured brief → copy or send to team
-- ⬜ Mini audits: website audit, brand audit, presentation audit, process audit (P3)
-- ⬜ Content calendar builder (P3)
+- ⬜ Content calendar builder (P3+)
 
 ## Phase 3 — Intelligence & personalization
 
+- ✅ **Real AI concierge** — chat-style UI + `/api/concierge`. LLM-backed via OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY / any OpenAI-compatible endpoint (see `.env.example`); falls back to a strong deterministic rules engine (keyword scoring → primary/supporting services, rationale, phases, risks, open questions) — always answers, never breaks
+- ✅ **Analytics events** — anonymous, DNT-respecting pageviews + named tool events (`/api/events` → `.data/events.jsonl`): discovery_goal, concierge_complete, assessment_complete, audit_complete, calculator_use, lead_submit, website_audit
+- ✅ **CRM layer** — internal **Studio CRM at `/admin`** (token-gated via `ADMIN_TOKEN`, default `flagship-dev`): KPI dashboard (leads, 7-day leads, avg score, subscribers, pageviews, view→lead conversion), top pages, tool usage, pipeline funnel, and a leads inbox with computed lead score (0–100), estimated value, urgency, status pipeline (new→contacted→proposal→won→lost) + notes via server actions
+- ✅ **Mini audits** — Website Audit (live: fetches the page, 14 checks across SEO/content/UX/conversion, SSRF-guarded), Presentation Audit, Brand Audit, Business Process Audit (questionnaire → dimension scores, findings, ranked fixes + lead capture)
 - ⬜ Upload→analyze→transform (visitor uploads a document, system flags improvement opportunities)
-- ⬜ Recommendation engine ("based on what you've explored…") — needs analytics event store
+- ⬜ Recommendation engine ("based on what you've explored…") — needs richer event store
 - ⬜ Personalization (returning visitor greeting, segment variants)
-- ⬜ Real AI concierge (LLM-backed, with guardrails) replacing rule-based version
-- ⬜ Business analytics: most-viewed service, blog→lead conversion, tool usage funnels, quote abandonment
-- ⬜ CRM layer: every interaction → lead record w/ scoring (source, interest, status, potential value)
 - ⬜ Localization depth: full content translation (not just UI chrome), LKR/USD/GBP/EUR display
 
 ## Phase 4 — Client platform
@@ -122,10 +122,16 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 `work` cases · `company` team/values/jobs/partners/press/roadmap/status/network/events ·
 `tools` goals/stages/assessments/calculators · `legal` docs · leads (`.data/*.jsonl`)
 
+## Phase 3 — Intelligence (shipped)
+
+- ✅ AI concierge (chat UI, LLM w/ rules fallback) — `/api/concierge`
+- ✅ Analytics events (`/api/events`) + Studio CRM (`/admin`, `ADMIN_TOKEN`)
+- ✅ 4 mini audits: website (live fetch), presentation, brand, process
+
 ## Build order log
 
-1. ✅ Phase 0+1+2 — foundation, full public website, tools (this release)
-2. ⬜ Phase 3 — analytics + CRM + real AI concierge
+1. ✅ Phase 0+1+2 — foundation, full public website, tools
+2. ✅ Phase 3 — AI concierge, analytics + CRM layer, mini audits
 3. ⬜ Phase 4 — client platform (auth, workspace, Brains)
 4. ⬜ Phase 5 — internal studio OS
 5. ⬜ Phase 6/7 — products, community, ops depth

@@ -214,3 +214,160 @@ export const calculators: CalculatorConfig[] = [
 export function getCalculator(slug: string) {
   return calculators.find((c) => c.slug === slug);
 }
+
+/* ---------- mini audits ---------- */
+
+export type AuditChoice = { label: string; points: number };
+export type AuditQuestion = { q: string; dim: string; choices?: AuditChoice[] };
+export type AuditFinding = { dim: string; max: number; severity: "fail" | "warn" | "pass"; text: string };
+export type AuditConfig = {
+  slug: string;
+  name: string;
+  kicker: string;
+  intro: string;
+  dimensions: { key: string; label: string }[];
+  questions: AuditQuestion[];
+  findings: AuditFinding[];
+  recommendations: { dim: string; text: string }[];
+};
+
+const SCALE: AuditChoice[] = [
+  { label: "Not at all", points: 0 },
+  { label: "Rarely", points: 1 },
+  { label: "Sometimes", points: 2 },
+  { label: "Mostly", points: 3 },
+  { label: "Absolutely", points: 4 },
+];
+
+export const audits: AuditConfig[] = [
+  {
+    slug: "presentation-audit",
+    name: "Presentation Audit",
+    kicker: "Audit · 3 minutes",
+    intro: "Score your deck honestly: readability, storytelling, hierarchy and visual consistency — with specific fixes for every weak spot.",
+    dimensions: [
+      { key: "readability", label: "Readability" },
+      { key: "storytelling", label: "Storytelling" },
+      { key: "hierarchy", label: "Visual hierarchy" },
+      { key: "consistency", label: "Consistency" },
+    ],
+    questions: [
+      { q: "Slides are readable from the back of the room.", dim: "readability" },
+      { q: "Most slides carry one idea, not five.", dim: "readability" },
+      { q: "The deck tells a story rather than listing topics.", dim: "storytelling" },
+      { q: "Read aloud, the headlines alone carry the argument.", dim: "storytelling" },
+      { q: "Numbers are visualised, not tabulated.", dim: "hierarchy" },
+      { q: "The most important element on each slide is obviously the most important.", dim: "hierarchy" },
+      { q: "Typography, colour and spacing are consistent throughout.", dim: "consistency" },
+      { q: "Every deck your company produces looks like the same company.", dim: "consistency" },
+    ],
+    findings: [
+      { dim: "readability", max: 39, severity: "fail", text: "Dense slides are costing you the room — attention dies at paragraph three." },
+      { dim: "readability", max: 69, severity: "warn", text: "Readable but still carrying too much per slide; cut 30% of words." },
+      { dim: "readability", max: 100, severity: "pass", text: "Readable — the room can hear you AND read you." },
+      { dim: "storytelling", max: 39, severity: "fail", text: "No throughline: it's a list wearing a template. Write the argument first." },
+      { dim: "storytelling", max: 69, severity: "warn", text: "A story is in there somewhere — headline-test it to surface the spine." },
+      { dim: "storytelling", max: 100, severity: "pass", text: "The story survives design — the way it should." },
+      { dim: "hierarchy", max: 39, severity: "fail", text: "Everything screams, so nothing is heard. Establish one focal point per slide." },
+      { dim: "hierarchy", max: 69, severity: "warn", text: "Hierarchy exists but is inconsistent — systemise size, weight and colour." },
+      { dim: "hierarchy", max: 100, severity: "pass", text: "Clear hierarchy — viewers know where to look." },
+      { dim: "consistency", max: 39, severity: "fail", text: "The deck looks made by different companies. A slide system fixes this in days." },
+      { dim: "consistency", max: 69, severity: "warn", text: "Mostly consistent — lock down a master and stop freelancing." },
+      { dim: "consistency", max: 100, severity: "pass", text: "Consistent — your brand compounds instead of fragmenting." },
+    ],
+    recommendations: [
+      { dim: "readability", text: "Presentation design sprint: rewrite + redesign your core deck for the 90-second test." },
+      { dim: "storytelling", text: "Story workshop: one session to find the throughline before touching design." },
+      { dim: "hierarchy", text: "Slide system: grids, type scale and data-viz rules your team can reuse." },
+      { dim: "consistency", text: "Template kit + training so every future deck ships on-brand." },
+    ],
+  },
+  {
+    slug: "brand-audit",
+    name: "Brand Audit",
+    kicker: "Audit · 3 minutes",
+    intro: "How consistent is your brand across touchpoints? Score consistency, messaging, visual identity and asset health.",
+    dimensions: [
+      { key: "consistency", label: "Consistency" },
+      { key: "messaging", label: "Messaging" },
+      { key: "visual", label: "Visual identity" },
+      { key: "assets", label: "Asset health" },
+    ],
+    questions: [
+      { q: "Customers could describe what makes you different in one sentence.", dim: "messaging" },
+      { q: "Your website, documents and social sound like one organisation.", dim: "consistency" },
+      { q: "New hires quickly learn how to 'sound like us'.", dim: "consistency" },
+      { q: "Your positioning hasn't drifted in the last year.", dim: "messaging" },
+      { q: "Logo, colour and type are used correctly everywhere.", dim: "visual" },
+      { q: "Your materials look current, not five years old.", dim: "visual" },
+      { q: "Anyone can find your logo files and guidelines in minutes.", dim: "assets" },
+      { q: "You have one source of truth for approved copy and facts.", dim: "assets" },
+    ],
+    findings: [
+      { dim: "consistency", max: 39, severity: "fail", text: "Your brand is a committee — every channel improvises. A voice system is the fix." },
+      { dim: "consistency", max: 69, severity: "warn", text: "Consistent in places; drift is creeping in at the edges." },
+      { dim: "consistency", max: 100, severity: "pass", text: "One voice everywhere — rare and valuable." },
+      { dim: "messaging", max: 39, severity: "fail", text: "If customers can't repeat your difference, your messaging is decoration." },
+      { dim: "messaging", max: 69, severity: "warn", text: "The difference exists but it's buried — sharpen the claim." },
+      { dim: "messaging", max: 100, severity: "pass", text: "Sharp positioning customers can repeat." },
+      { dim: "visual", max: 39, severity: "fail", text: "Visual chaos: identity rules either don't exist or aren't followed." },
+      { dim: "visual", max: 69, severity: "warn", text: "Visual identity works but has blind spots (docs? decks? social?)." },
+      { dim: "visual", max: 100, severity: "pass", text: "Visual identity holds the line." },
+      { dim: "assets", max: 39, severity: "fail", text: "Assets live in inboxes and heads — a Brand Brain fixes findability forever." },
+      { dim: "assets", max: 69, severity: "warn", text: "Assets exist but cost time to find; centralise them." },
+      { dim: "assets", max: 100, severity: "pass", text: "Healthy asset system — brand work compounds." },
+    ],
+    recommendations: [
+      { dim: "consistency", text: "Voice system: guidelines + examples + Brand Brain so everything writes itself consistently." },
+      { dim: "messaging", text: "Positioning sprint: one workshop, one sentence everyone can repeat." },
+      { dim: "visual", text: "Identity refresh: audit touchpoints, fix the worst five first." },
+      { dim: "assets", text: "Brand Brain build: one queryable home for guidelines, logos and approved facts." },
+    ],
+  },
+  {
+    slug: "process-audit",
+    name: "Business Process Audit",
+    kicker: "Audit · 4 minutes",
+    intro: "Where does work get stuck? Score process maturity, bottlenecks, automation readiness and documentation.",
+    dimensions: [
+      { key: "maturity", label: "Process maturity" },
+      { key: "bottlenecks", label: "Bottlenecks" },
+      { key: "automation", label: "Automation readiness" },
+      { key: "documentation", label: "Documentation" },
+    ],
+    questions: [
+      { q: "Key processes are documented and actually followed.", dim: "maturity" },
+      { q: "Work flows without a hero pushing it through.", dim: "maturity" },
+      { q: "You can name the three slowest steps in your operation.", dim: "bottlenecks" },
+      { q: "Approvals don't queue for days.", dim: "bottlenecks" },
+      { q: "Repeated manual work (copy-paste, re-keying, chasing) is shrinking.", dim: "automation" },
+      { q: "You could automate one workflow this quarter if you decided to.", dim: "automation" },
+      { q: "New hires can find how work is done without asking three people.", dim: "documentation" },
+      { q: "When someone leaves, their knowledge stays.", dim: "documentation" },
+    ],
+    findings: [
+      { dim: "maturity", max: 39, severity: "fail", text: "Processes are habits, not systems — every week runs on memory." },
+      { dim: "maturity", max: 69, severity: "warn", text: "Processes exist but enforcement is patchy." },
+      { dim: "maturity", max: 100, severity: "pass", text: "Systematic — work survives absence and growth." },
+      { dim: "bottlenecks", max: 39, severity: "fail", text: "Bottlenecks are invisible but expensive — map the value stream once." },
+      { dim: "bottlenecks", max: 69, severity: "warn", text: "Known bottlenecks without owners — assign and unblock." },
+      { dim: "bottlenecks", max: 100, severity: "pass", text: "Flow is visible and managed." },
+      { dim: "automation", max: 39, severity: "fail", text: "Humans are doing robot work — quick automation wins are waiting." },
+      { dim: "automation", max: 69, severity: "warn", text: "Some automation; the biggest hours are still manual." },
+      { dim: "automation", max: 100, severity: "pass", text: "Automation-ready — or already automating." },
+      { dim: "documentation", max: 39, severity: "fail", text: "Knowledge lives in heads — that's business risk, not a quirk." },
+      { dim: "documentation", max: 69, severity: "warn", text: "Documentation exists but isn't trusted or found." },
+      { dim: "documentation", max: 100, severity: "pass", text: "Institutional memory, engineered." },
+    ],
+    recommendations: [
+      { dim: "maturity", text: "Process redesign engagement: map, simplify, own." },
+      { dim: "bottlenecks", text: "Value-stream mapping session: find the queue, kill the queue." },
+      { dim: "automation", text: "Automation audit: two weeks, ranked opportunities, first build included." },
+      { dim: "documentation", text: "Knowledge architecture program: structure before content." },
+    ],
+  },
+];
+
+export function getAudit(slug: string) {
+  return audits.find((a) => a.slug === slug);
+}

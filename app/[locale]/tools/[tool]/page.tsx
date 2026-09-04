@@ -2,16 +2,19 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getDict } from "@/lib/dictionaries";
 import { isLocale, type Locale } from "@/lib/i18n";
-import { getAssessment, getCalculator } from "@/lib/data/tools";
+import { getAssessment, getCalculator, getAudit } from "@/lib/data/tools";
 import AssessTool from "@/components/AssessTool";
 import CalculatorTool from "@/components/CalculatorTool";
 import BriefBuilder from "@/components/BriefBuilder";
+import AuditTool from "@/components/AuditTool";
+import WebsiteAudit from "@/components/WebsiteAudit";
 import { PageHero, Section } from "@/components/ui";
 
 const TOOL_IDS = [
   "transformation-index", "ai-readiness",
   "roi-calculator", "productivity-calculator", "project-estimator", "content-calculator",
   "brief-builder",
+  "website-audit", "presentation-audit", "brand-audit", "process-audit",
 ];
 
 export function generateStaticParams() {
@@ -22,7 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { tool } = await params;
   const assessment = getAssessment(tool);
   const calculator = getCalculator(tool);
-  const name = assessment?.name ?? calculator?.name ?? (tool === "brief-builder" ? "Project Brief Generator" : "Tool");
+  const audit = getAudit(tool);
+  const name = assessment?.name ?? calculator?.name ?? audit?.name ?? (tool === "brief-builder" ? "Project Brief Generator" : tool === "website-audit" ? "Website Audit" : "Tool");
   return { title: name };
 }
 
@@ -39,6 +43,29 @@ export default async function ToolPage({ params }: { params: Promise<{ locale: s
         <PageHero kicker={assessment.kicker} title={assessment.name} sub={assessment.intro} />
         <Section className="py-16">
           <AssessTool locale={locale} dict={d} config={assessment} />
+        </Section>
+      </>
+    );
+  }
+
+  const audit = getAudit(tool);
+  if (audit) {
+    return (
+      <>
+        <PageHero kicker={audit.kicker} title={audit.name} sub={audit.intro} />
+        <Section className="py-16">
+          <AuditTool locale={locale} dict={d} config={audit} />
+        </Section>
+      </>
+    );
+  }
+
+  if (tool === "website-audit") {
+    return (
+      <>
+        <PageHero kicker="Live audit · 30 seconds" title="Website Audit" sub="Enter your URL. We fetch the page and run 14 honest checks across SEO, content, UX and conversion — observations you can act on today." />
+        <Section className="py-16">
+          <WebsiteAudit locale={locale} dict={d} />
         </Section>
       </>
     );
