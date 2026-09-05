@@ -19,7 +19,7 @@ npm run build && npm start
 
 - **Studio CRM**: visit `/admin` (dev token: `flagship-dev` — set `ADMIN_TOKEN` in production). Leads (+ AI analysis), analytics, proposals (**shareable client links**), orders, projects (tasks/time/feedback), clients, finance, content pipeline (+ **repurposing engine** and **publish calendar**)
 - **Revenue layer**: `/products` (digital products + Agency+ membership), `/checkout` (reserve orders, manual fulfilment in beta), `/events`, `/research` (2027 report), `/community`, `/team` (public rate card), currency switcher on `/packages`
-- **Client portal**: visit `/portal/login` and use the seeded demo `demo@acme.example` (dev mode shows the one-time login link inline — or set SMTP env vars to email it). Workspace, approvals, **click-on-page document review**, files, Brand Brain & Business Brain
+- **Client portal**: visit `/portal/login` and use the seeded demo `demo@acme.example` (dev mode shows the one-time login link inline — or set SMTP env vars to email it). Workspace, approvals, **click-on-page document review**, files, Brand Brain & Business Brain — uploads are **text-extracted and auto-indexed into the Brain** (PDF/DOCX/plain text, fully local)
 - **AI Concierge**: works out of the box (rules engine); set any LLM key from `.env.example` for LLM-grade recommendations — the same key powers both Brains
 
 ## Structure

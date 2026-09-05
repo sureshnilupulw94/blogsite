@@ -16,6 +16,7 @@ import {
   MAX_UPLOAD_BYTES,
 } from "@/lib/portal";
 import { smtpConfigured, sendMail, magicLinkEmail } from "@/lib/mailer";
+import { extractText, worthIndexing } from "@/lib/docintel";
 
 export type MagicLinkState = { ok: boolean; message: string; devLink?: string } | null;
 
@@ -182,7 +183,24 @@ export async function uploadFile(formData: FormData) {
   if (!(file instanceof File) || file.size === 0) return;
   if (file.size > MAX_UPLOAD_BYTES) return;
   const bytes = Buffer.from(await file.arrayBuffer());
-  await saveUpload(session.slug, { name: file.name, size: file.size, bytes }, category);
+  const meta = await saveUpload(session.slug, { name: file.name, size: file.size, bytes }, category);
+  if (meta && "id" in meta) {
+    /* document intelligence: readable files are text-extracted and indexed into the Brain */
+    const extracted = await extractText(file.name, bytes);
+    if (worthIndexing(extracted)) {
+      const which = /brand/i.test(category) ? "brand" : "business";
+      const entry = await addBrainEntry(session.slug, which, `📄 ${meta.name}`, extracted.text);
+      if (!(entry as { error?: string }).error) {
+        await mutateWorkspace(session.slug, (ws) => {
+          const f = ws.files.find((x) => x.id === meta.id);
+          if (f) f.indexed = { engine: extracted.engine, brainEntryId: (entry as { id: string }).id, chars: extracted.text.length };
+          pushActivity(ws, `Document indexed into ${which === "brand" ? "Brand" : "Business"} Brain: ${meta.name}`);
+        });
+        revalidatePath("/portal/brain");
+        revalidatePath("/portal/business-brain");
+      }
+    }
+  }
   revalidatePath("/portal/files");
   revalidatePath("/portal");
 }
