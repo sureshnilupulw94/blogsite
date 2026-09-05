@@ -49,6 +49,7 @@ export const roadmap = [
   { status: "done", title: "Marketplace checkout", desc: "Reserve products & membership — orders tracked, manual fulfilment in beta." },
   { status: "done", title: "Community hub", desc: "Office hours, workshop room, founding cohort." },
   { status: "done", title: "Content factory", desc: "Draft skeletons from ideas, repurposing engine, publish calendar + ICS feed." },
+  { status: "done", title: "Document intelligence", desc: "PDF/DOCX uploads auto-extracted and indexed into client Brains." },
   { status: "next", title: "Stripe payments", desc: "Card capture at checkout for products, membership and tickets." },
 ];
 

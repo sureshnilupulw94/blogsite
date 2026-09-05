@@ -72,7 +72,7 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Business Brain** — `/portal/business-brain`: the operations counterpart (policies, SOPs, processes, FAQs). Same ask/teach interaction as Brand Brain; both share `/api/portal/brain` (`which` param) with retrieval + optional LLM answers
 - ✅ **SMTP email delivery** — nodemailer via env (`SMTP_HOST/PORT/USER/PASS/FROM`): magic links emailed as branded HTML (dev link also shown unless `PORTAL_DEV_LINKS=off`); optional `MAILER_NOTIFY_EMAIL` pings the studio on every new lead; failures degrade gracefully to the dev link
 - ✅ **Studio project views** — `/admin/projects`: all client workspaces with progress + open-note counts; detail page with the feedback inbox, deliverable status controls (draft→…→final), milestones, brains, activity
-- ⬜ Document intelligence: upload docs → Company Knowledge Profile (OCR/extraction pipeline)
+- ✅ **Document intelligence** — uploads to the client vault are text-extracted locally (PDF via pdf-parse, DOCX via mammoth, plain text passthrough; no network calls) and auto-indexed into the matching Brain (brand uploads → Brand Brain, everything else → Business Brain); files show an indexed badge with engine + size; OCR for images on the roadmap
 
 ## Phase 5 — Agency operating system (internal /studio)
 

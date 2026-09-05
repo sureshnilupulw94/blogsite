@@ -49,6 +49,7 @@ export default async function FilesPage() {
                 <p className="truncate font-display text-sm font-semibold">{f.name}</p>
                 <p className="mt-1 font-mono text-[10px] text-mute">
                   {f.category} · {(f.size / 1024).toFixed(0)} KB · {new Date(f.uploadedAt).toLocaleDateString()}
+                  {f.indexed ? <span className="ms-2 rounded-full border border-accent/50 px-2 py-0.5 text-accent">🧠 indexed · {f.indexed.engine} · {(f.indexed.chars / 1000).toFixed(1)}k chars</span> : null}
                 </p>
               </div>
               <a href={`/portal/files/${f.id}`} className="rounded-full border border-line px-5 py-2 font-display text-xs hover:border-accent/50 hover:text-accent">
