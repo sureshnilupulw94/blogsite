@@ -48,7 +48,7 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Website Project Estimator** (complexity → package suggestion)
 - ✅ **Content Cost Calculator** (effort vs retainer)
 - ✅ **Project Brief Generator** — 10-step builder → structured brief → copy or send to team
-- ⬜ Content calendar builder (P3+)
+- ⬜ Content calendar builder (P3+) — ✅ admin calendar + ICS shipped; public builder later
 
 ## Phase 3 — Intelligence & personalization
 
@@ -84,7 +84,9 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Studio OS shell** — sticky admin nav across dashboard, leads, projects, clients, proposals, finance, content
 - ✅ **Client-facing proposal share links** — unguessable `/p/{token}` pages: the client reads the branded proposal and can **Accept/Decline** directly (status + analytics flow back to the studio); generated from the proposal detail page
 - ✅ **Team directory & public rate card** — `/team`: every member with craft, rate per hour and booking note; estimate-first billing explained; direct booking capture per person
-- ⬜ AI content factory automation (Brand Voice → draft → reviews) beyond the manual board
+- ✅ **AI content factory automation** — "Draft it" on ideas stamps a structured draft skeleton (hook/thesis/sections/close + voice check) and auto-advances the board; drafts stored per item
+- ✅ **Content repurposing engine** — `/admin/repurpose`: one source (episode, case or raw idea) → LinkedIn post, thread, newsletter blurb, quote cards, SEO pair; deterministic rules honoring brand voice, LLM-polished when a key is set; one click drops channel versions onto the board
+- ✅ **Content calendar** — `/admin/calendar` month grid (Monday-first) of pinned publish dates, episodes and news; public machine-readable **ICS feed** at `/api/calendar.ics` (all-day events, correct DTEND), linked from the podcast page
 
 ## Phase 6 — Audience & revenue products
 

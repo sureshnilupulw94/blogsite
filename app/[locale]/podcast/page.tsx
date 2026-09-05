@@ -73,6 +73,8 @@ export default async function Podcast({ params }: { params: Promise<{ locale: st
           ))}
           <span className="text-xs text-mute/60">— or be a guest:</span>
           <Btn href={p("contact")} variant="ghost">Pitch us</Btn>
+          <span className="text-xs text-mute/60">— or add every episode to your calendar:</span>
+          <a href="/api/calendar.ics" className="rounded-full border border-line px-5 py-2.5 text-xs text-mute transition-colors hover:border-accent/40 hover:text-accent">📅 Calendar feed (ICS)</a>
         </div>
       </Section>
     </>

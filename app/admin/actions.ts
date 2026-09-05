@@ -8,6 +8,7 @@ import { updateLeadStatus, readLeadById, readJsonStore, writeJsonStore } from "@
 import { createPortalClient, createLoginToken, mutateWorkspace, pushActivity, type DeliverableStatus } from "@/lib/portal";
 import { analyzeLead, type LeadAnalysis } from "@/lib/analysis";
 import { buildProposal, saveProposal, setProposalStatus, createShareToken, type ProposalStatus } from "@/lib/proposals";
+import { draftFromIdea } from "@/lib/repurpose";
 
 export async function login(formData: FormData) {
   const token = String(formData.get("token") ?? "");
@@ -201,7 +202,7 @@ export async function logTime(formData: FormData) {
 
 /* ---------- content pipeline ---------- */
 
-export type ContentItem = { id: string; title: string; stage: "idea" | "draft" | "review" | "scheduled" | "published"; assignee?: string; updatedAt: string };
+export type ContentItem = { id: string; title: string; stage: "idea" | "draft" | "review" | "scheduled" | "published"; assignee?: string; updatedAt: string; draft?: string; publishAt?: string };
 const STAGES: ContentItem["stage"][] = ["idea", "draft", "review", "scheduled", "published"];
 
 export async function addContentItem(formData: FormData) {
@@ -236,6 +237,56 @@ export async function deleteContentItem(formData: FormData) {
   await assertAdmin();
   const id = String(formData.get("id") ?? "");
   const items = (await readJsonStore<ContentItem[]>("content.json", [])).filter((x) => x.id !== id);
+  await writeJsonStore("content.json", items);
+  revalidatePath("/admin/content");
+}
+
+/** AI factory: stamp a structured draft from a bare idea and advance it. */
+export async function generateDraft(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const items = await readJsonStore<ContentItem[]>("content.json", []);
+  const item = items.find((x) => x.id === id);
+  if (!item) return;
+  item.draft = draftFromIdea(item.title);
+  if (item.stage === "idea") item.stage = "draft";
+  item.updatedAt = new Date().toISOString();
+  await writeJsonStore("content.json", items);
+  revalidatePath("/admin/content");
+}
+
+/** Calendar builder: pin a publish date on an item. */
+export async function scheduleContentItem(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const date = String(formData.get("date") ?? "").trim();
+  const items = await readJsonStore<ContentItem[]>("content.json", []);
+  const item = items.find((x) => x.id === id);
+  if (!item) return;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) item.publishAt = date;
+  else delete item.publishAt;
+  item.updatedAt = new Date().toISOString();
+  await writeJsonStore("content.json", items);
+  revalidatePath("/admin/content");
+  revalidatePath("/admin/calendar");
+}
+
+/** Repurposing: drop channel-specific versions onto the board as new ideas. */
+export async function repurposeToBoard(formData: FormData) {
+  await assertAdmin();
+  const title = String(formData.get("title") ?? "").trim().slice(0, 200);
+  const channels = formData.getAll("channel").map(String).filter(Boolean);
+  if (!title || channels.length === 0) return;
+  const items = await readJsonStore<ContentItem[]>("content.json", []);
+  const label: Record<string, string> = { linkedin: "LinkedIn", thread: "Thread", newsletter: "Newsletter" };
+  for (const channel of channels) {
+    items.unshift({
+      id: crypto.randomUUID(),
+      title: `[${label[channel] ?? channel}] ${title}`.slice(0, 200),
+      stage: "idea",
+      updatedAt: new Date().toISOString(),
+    });
+  }
   await writeJsonStore("content.json", items);
   revalidatePath("/admin/content");
 }
