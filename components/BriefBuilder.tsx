@@ -10,6 +10,12 @@ import { Badge, cx, Icon } from "./ui";
 const materialOpts = ["Brand guidelines", "Existing website", "Company profile", "Presentation materials", "Past reports", "Product information"];
 const timelines = ["Yesterday", "This month", "This quarter", "3–6 months", "Exploring for now"];
 const budgets = ["< $2k", "$2k – $8k", "$8k – $25k", "$25k+", "Not sure yet"];
+const urgencies: [string, string][] = [
+  ["standard", "Standard — planned work, no surcharge"],
+  ["priority", "Priority — dedicated slot, +25%"],
+  ["urgent", "Urgent — jumps the queue, +50%"],
+  ["emergency", "Emergency — war-room, custom quote"],
+];
 const successExamples = ["More inquiries", "Investors convinced", "Team self-sufficient", "Manual work removed", "Look like the company we are"];
 
 type State = {
@@ -19,6 +25,7 @@ type State = {
   success: string;
   services: string[];
   timeline?: string;
+  urgency?: string;
   budget?: string;
   files: string[];
   name: string;
@@ -33,6 +40,7 @@ const STEP_LABELS = [
   "What would success look like?",
   "Which services might help?",
   "Timeline?",
+  "How urgent is it?",
   "Budget?",
   "Upload materials",
   "Review your brief",
@@ -73,7 +81,7 @@ export default function BriefBuilder({ locale, dict, services }: { locale: Local
     `Success looks like: ${state.success || "—"}`,
     `Existing materials: ${state.materials.join(", ") || "—"}`,
     `Services of interest: ${state.services.map((s) => services.find((x) => x.slug === s)?.title ?? s).join(", ") || "—"}`,
-    `Timeline: ${state.timeline ?? "—"}`,
+    `Timeline: ${state.timeline ?? "—"}${state.urgency ? ` · urgency: ${state.urgency}` : ""}`,
     `Budget: ${state.budget ?? "—"}`,
     `Files referenced: ${state.files.join(", ") || "—"}`,
     "",
@@ -165,6 +173,16 @@ export default function BriefBuilder({ locale, dict, services }: { locale: Local
         ) : null}
 
         {step === 6 ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {urgencies.map(([id, label]) => (
+              <button key={id} type="button" onClick={() => setState((s) => ({ ...s, urgency: id }))} className={cx("rounded-xl border p-4 text-start text-sm transition-all", state.urgency === id ? "border-accent bg-accent/10 text-accent" : "border-line bg-carbon hover:border-accent/40")}>
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {step === 7 ? (
           <div className="flex flex-wrap gap-2">
             {budgets.map((b) => (
               <button key={b} type="button" onClick={() => setState((s) => ({ ...s, budget: b }))} className={chip(state.budget === b)}>{b}</button>
@@ -172,7 +190,7 @@ export default function BriefBuilder({ locale, dict, services }: { locale: Local
           </div>
         ) : null}
 
-        {step === 7 ? (
+        {step === 8 ? (
           <div>
             <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-line bg-carbon/60 px-6 py-10 text-center transition-colors hover:border-accent/50">
               <Icon name="doc" className="size-8 text-mute" />
@@ -194,7 +212,7 @@ export default function BriefBuilder({ locale, dict, services }: { locale: Local
           </div>
         ) : null}
 
-        {step === 8 ? (
+        {step === 9 ? (
           <div>
             <pre className="max-h-80 overflow-auto rounded-xl border border-line bg-ink p-5 font-mono text-xs leading-relaxed text-paper/90">{briefText}</pre>
             <button
@@ -207,10 +225,10 @@ export default function BriefBuilder({ locale, dict, services }: { locale: Local
           </div>
         ) : null}
 
-        {step === 9 ? (
+        {step === 10 ? (
           <div>
             <p className="text-sm leading-relaxed text-mute">Your brief is ready. Send it — we respond within one working day with questions, a suggested approach, or a call slot.</p>
-            <MiniCapture dict={dict} cta={dict.tools.sendToTeam} payload={{ type: "brief", goal: goalLabel, problem: state.problem, success: state.success, materials: state.materials.join(", "), services: state.services.join(", "), timeline: state.timeline, budget: state.budget, files: state.files.join(", "), brief: briefText }} />
+            <MiniCapture dict={dict} cta={dict.tools.sendToTeam} payload={{ type: "brief", goal: goalLabel, problem: state.problem, success: state.success, materials: state.materials.join(", "), services: state.services.join(", "), timeline: state.timeline, urgency: state.urgency, budget: state.budget, files: state.files.join(", "), brief: briefText }} />
           </div>
         ) : null}
       </div>
@@ -219,7 +237,7 @@ export default function BriefBuilder({ locale, dict, services }: { locale: Local
         <button type="button" disabled={step === 0} onClick={() => setStep(step - 1)} className="font-mono text-xs text-mute hover:text-paper disabled:opacity-40">
           ← {dict.common.back}
         </button>
-        {step < 9 ? (
+        {step < 10 ? (
           <button
             type="button"
             disabled={!canNext()}

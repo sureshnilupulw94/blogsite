@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { readJsonStore, writeJsonStore } from "./leads";
 import { getService } from "./data/services";
 
@@ -8,6 +8,8 @@ export type Proposal = {
   id: string;
   createdAt: string;
   status: ProposalStatus;
+  shareToken?: string;
+  sharedAt?: string;
   client: { name: string; company: string; email: string };
   objective: string;
   services: string[];
@@ -78,4 +80,21 @@ export async function setProposalStatus(id: string, status: ProposalStatus) {
   if (!p) return;
   p.status = status;
   await writeJsonStore("proposals.json", all);
+}
+
+export async function createShareToken(id: string): Promise<string | null> {
+  const all = await listProposals();
+  const p = all.find((x) => x.id === id);
+  if (!p) return null;
+  if (p.shareToken) return p.shareToken;
+  p.shareToken = randomBytes(12).toString("hex");
+  p.sharedAt = new Date().toISOString();
+  if (p.status === "draft") p.status = "sent";
+  await writeJsonStore("proposals.json", all);
+  return p.shareToken;
+}
+
+export async function getProposalByToken(token: string): Promise<Proposal | null> {
+  if (!/^[a-f0-9]{24}$/i.test(token)) return null;
+  return (await listProposals()).find((p) => p.shareToken === token) ?? null;
 }

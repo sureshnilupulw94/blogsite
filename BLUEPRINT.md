@@ -82,16 +82,28 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Finance** — `/admin/finance`: accepted value, pipeline, logged hours, delivery cost (`STUDIO_HOURLY_COST`), gross margin, per-client table, win rate
 - ✅ **Content factory pipeline** — `/admin/content`: idea→draft→review→scheduled→published board
 - ✅ **Studio OS shell** — sticky admin nav across dashboard, leads, projects, clients, proposals, finance, content
+- ✅ **Client-facing proposal share links** — unguessable `/p/{token}` pages: the client reads the branded proposal and can **Accept/Decline** directly (status + analytics flow back to the studio); generated from the proposal detail page
 - ⬜ Team directory & roles, rates per person
 - ⬜ AI content factory automation (Brand Voice → draft → reviews) beyond the manual board
-- ⬜ Client-facing proposal share links (currently internal + print)
 
 ## Phase 6 — Audience & revenue products
 
-- ⬜ Community (members area), events & ticketed workshops
-- ⬜ Digital products, membership (Agency+), marketplace
-- ⬜ Annual "State of…" research reports; press kit downloads (shells exist)
-- ⬜ Careers experience & applicant tracking (careers page ✅ shell)
+- ✅ **Digital products** — `/products`: six studio artefacts productised (Deck System, Document Kit, Brand Kit, SOP System, AI Prompt Pack, Research Template) with buy-interest capture (manual checkout while beta)
+- ✅ **Membership: Agency+** — three tiers (Member $29 / Studio+ $99 / Team custom) with join capture; subscription philosophy page cross-linked
+- ✅ **Events & workshops** — `/events`: open sessions with register-interest + private corporate program path
+- ✅ **Annual research report** — `/research`: "State of Business AI Adoption 2027" with findings preview, contents and email-gated full report
+- ✅ **Marketplace teaser** — announced on /products; full store later
+- ⬜ Community area (member content, forums, office hours booking)
+- ⬜ Ticketed workshop checkout (payments)
+- ⬜ Careers experience deepening (applicant tracking exists via leads)
+
+## Phase 7 — Operations
+
+- ✅ **Live status page** — `/status` + machine-readable `/api/status`: real checks (lead store writable, portal seeded, uploads writable, AI engine mode) run per request
+- ✅ **Project urgency tiers** — brief builder step: Standard / Priority (+25%) / Urgent (+50%) / Emergency (custom), included in the brief and lead payload
+- ✅ **Multi-currency display** — packages page currency switcher (USD/LKR/GBP/EUR, indicative conversion)
+- ⬜ Timezone-aware scheduling (calendar integration)
+- ⬜ Payments (Stripe) for products & membership
 
 ## Phase 7 — Operations
 

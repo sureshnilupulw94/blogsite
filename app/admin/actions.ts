@@ -7,7 +7,7 @@ import { ADMIN_COOKIE, adminToken } from "@/lib/admin";
 import { updateLeadStatus, readLeadById, readJsonStore, writeJsonStore } from "@/lib/leads";
 import { createPortalClient, createLoginToken, mutateWorkspace, pushActivity, type DeliverableStatus } from "@/lib/portal";
 import { analyzeLead, type LeadAnalysis } from "@/lib/analysis";
-import { buildProposal, saveProposal, setProposalStatus, type ProposalStatus } from "@/lib/proposals";
+import { buildProposal, saveProposal, setProposalStatus, createShareToken, type ProposalStatus } from "@/lib/proposals";
 
 export async function login(formData: FormData) {
   const token = String(formData.get("token") ?? "");
@@ -149,6 +149,14 @@ export async function markProposal(formData: FormData) {
   revalidatePath("/admin/proposals");
   revalidatePath(`/admin/proposals/${id}`);
   revalidatePath("/admin/finance");
+}
+
+export async function shareProposal(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  await createShareToken(id);
+  revalidatePath(`/admin/proposals/${id}`);
+  revalidatePath("/admin/proposals");
 }
 
 /* ---------- project tasks & time ---------- */

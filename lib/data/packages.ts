@@ -1,5 +1,6 @@
 export type Pack = {
   slug: string;
+  usd: number;
   name: string;
   for: string;
   price: string;
@@ -11,6 +12,7 @@ export type Pack = {
 export const packages: Pack[] = [
   {
     slug: "starter",
+    usd: 1200,
     name: "Starter",
     for: "Individuals & small businesses",
     price: "from $1,200",
@@ -19,6 +21,7 @@ export const packages: Pack[] = [
   },
   {
     slug: "launch",
+    usd: 3800,
     name: "Launch",
     for: "New businesses",
     price: "from $3,800",
@@ -28,6 +31,7 @@ export const packages: Pack[] = [
   },
   {
     slug: "growth",
+    usd: 8500,
     name: "Growth",
     for: "Established companies",
     price: "from $8,500",
@@ -36,6 +40,7 @@ export const packages: Pack[] = [
   },
   {
     slug: "transform",
+    usd: 18000,
     name: "Transform",
     for: "Organisations undergoing change",
     price: "from $18,000",
@@ -44,6 +49,7 @@ export const packages: Pack[] = [
   },
   {
     slug: "enterprise",
+    usd: 0,
     name: "Enterprise",
     for: "Complex engagements",
     price: "Custom",
@@ -102,4 +108,5 @@ export const subscription = {
     "Brand Brain included — we remember everything about your business",
   ],
   price: "from $4,500/mo",
+  usdMonthly: 4500,
 };
