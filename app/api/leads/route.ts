@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { recordLead } from "@/lib/leads";
+import { smtpConfigured, sendMail } from "@/lib/mailer";
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +12,18 @@ export async function POST(request: Request) {
       else if (value && typeof value === "object") sanitized[key] = JSON.stringify(value).slice(0, 5000);
     }
     await recordLead("leads", sanitized);
+
+    // optional studio notification
+    const notify = process.env.MAILER_NOTIFY_EMAIL;
+    if (smtpConfigured() && notify) {
+      void sendMail({
+        to: notify,
+        subject: `New lead — ${String(sanitized.type ?? "contact")}${sanitized.tool ? ` (${sanitized.tool})` : ""}`,
+        text: JSON.stringify(sanitized, null, 2),
+        html: `<pre style="font-size:12px">${JSON.stringify(sanitized, null, 2).replace(/</g, "&lt;")}</pre>`,
+      });
+    }
+
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false }, { status: 500 });

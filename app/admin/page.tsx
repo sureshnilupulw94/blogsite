@@ -74,6 +74,9 @@ export default async function AdminDashboard() {
           <Link href="/admin/clients" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">
             Clients →
           </Link>
+          <Link href="/admin/projects" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">
+            Projects →
+          </Link>
           <form action={logout}>
             <button type="submit" className="rounded-full border border-line px-5 py-2.5 font-mono text-xs text-mute hover:text-paper">Log out</button>
           </form>

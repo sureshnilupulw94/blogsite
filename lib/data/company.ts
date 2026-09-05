@@ -40,9 +40,9 @@ export const roadmap = [
   { status: "done", title: "Transformation Index", desc: "Free business maturity assessment with dimension scores." },
   { status: "done", title: "AI ROI Calculator", desc: "Estimate what manual processes actually cost." },
   { status: "done", title: "Client Workspace", desc: "Magic-link portal: milestones, approvals, files, activity." },
-  { status: "doing", title: "Brand & Business Brain", desc: "Per-client knowledge bases. Brand Brain shipped; Business Brain next." },
-  { status: "next", title: "Feedback on documents", desc: "Click-on-deliverable comments with resolve workflow." },
-  { status: "later", title: "Automated proposal system", desc: "Brief → scoped proposal in minutes." },
+  { status: "done", title: "Brand & Business Brain", desc: "Per-client knowledge bases — brand voice and internal ops." },
+  { status: "done", title: "Document feedback", desc: "Click-on-page notes with open/resolved workflow." },
+  { status: "next", title: "Automated proposal system", desc: "Brief → scoped proposal in minutes." },
   { status: "later", title: "Studio OS", desc: "The internal operating system: CRM, projects, content, finance." },
 ];
 

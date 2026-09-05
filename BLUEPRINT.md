@@ -68,10 +68,11 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **File vault** — `/portal/files`: categorized uploads (5 MB cap), authenticated downloads via `/portal/files/[id]`, filenames sanitized, private storage under `.data/portal/{slug}/uploads`
 - ✅ **Brand Brain** — `/portal/brain`: per-client knowledge base. Add knowledge (paste/upload text) → auto-chunked; ask questions → retrieval with matched passages, and LLM-grounded answers when a key is configured (`/api/portal/brain`)
 - ✅ **Admin integration** — `/admin/clients`: create portal accounts (email + company + project → seeded workspace), generate login links; demo client auto-seeds (`demo@acme.example` / Acme Logistics with a live project)
-- ⬜ Pixel-anchored feedback (click-on-document comments) — threaded comments shipped; anchoring next
-- ⬜ Business Brain (internal ops knowledge) — Brand Brain shipped; internal counterpart next
+- ✅ **Pixel-anchored document feedback** — `/portal/review/[id]`: reviewable document pages; click anywhere to pin a note (x/y-anchored pins, numbered); open/resolved threads with resolve/reopen; studio-side feedback inbox with resolve at `/admin/projects/[slug]`
+- ✅ **Business Brain** — `/portal/business-brain`: the operations counterpart (policies, SOPs, processes, FAQs). Same ask/teach interaction as Brand Brain; both share `/api/portal/brain` (`which` param) with retrieval + optional LLM answers
+- ✅ **SMTP email delivery** — nodemailer via env (`SMTP_HOST/PORT/USER/PASS/FROM`): magic links emailed as branded HTML (dev link also shown unless `PORTAL_DEV_LINKS=off`); optional `MAILER_NOTIFY_EMAIL` pings the studio on every new lead; failures degrade gracefully to the dev link
+- ✅ **Studio project views** — `/admin/projects`: all client workspaces with progress + open-note counts; detail page with the feedback inbox, deliverable status controls (draft→…→final), milestones, brains, activity
 - ⬜ Document intelligence: upload docs → Company Knowledge Profile (OCR/extraction pipeline)
-- ⬜ Email delivery for magic links (SMTP) — dev link mode until then
 
 ## Phase 5 — Agency operating system (internal /studio)
 
@@ -132,11 +133,12 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 
 ## Phase 4 — Client platform (shipped)
 
-- ✅ Magic-link auth (`/portal`, HMAC sessions, no passwords)
+- ✅ Magic-link auth (`/portal`, HMAC sessions, no passwords) — SMTP delivery + dev-link fallback
 - ✅ Workspace: milestones + approvals, deliverable pipeline, revisions, activity
 - ✅ File vault (uploads + authenticated downloads)
-- ✅ Brand Brain (per-client knowledge base, retrieval + optional LLM answers)
-- ✅ Admin client management (`/admin/clients`) + demo seed (`demo@acme.example`)
+- ✅ Brand Brain & Business Brain (per-client knowledge bases, retrieval + optional LLM answers)
+- ✅ Pixel-anchored document feedback (client pins + studio inbox with resolve workflow)
+- ✅ Admin client management (`/admin/clients`) + studio project views (`/admin/projects`) + demo seed (`demo@acme.example`)
 
 ## Build order log
 

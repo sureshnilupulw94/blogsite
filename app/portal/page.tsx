@@ -39,7 +39,7 @@ export default async function PortalHome() {
           </div>
           <div className="flex gap-6 font-mono text-xs text-mute">
             <span><span className="block font-display text-2xl font-bold text-paper">{ws.files.length}</span>files</span>
-            <span><span className="block font-display text-2xl font-bold text-paper">{ws.brain.length}</span>brain entries</span>
+            <span><span className="block font-display text-2xl font-bold text-paper">{ws.brain.length + ws.businessBrain.length}</span>brain entries</span>
             <span><span className="block font-display text-2xl font-bold text-paper">{openComments.length}</span>open notes</span>
           </div>
         </div>
@@ -83,9 +83,12 @@ export default async function PortalHome() {
                 </div>
                 {ws.comments.filter((c) => c.deliverableId === d.id && !c.resolved).map((c) => (
                   <p key={c.id} className="mt-3 rounded-lg border border-line/60 bg-carbon p-3 text-xs text-mute">
-                    <span className="font-mono text-accent">{c.author === session.email ? "you" : c.author}:</span> {c.message}
+                    <span className="font-mono text-accent">{c.author === session.email ? "you" : c.author}{c.page ? ` · page ${c.page}` : ""}:</span> {c.message}
                   </p>
                 ))}
+                {d.pages?.length ? (
+                  <a href={`/portal/review/${d.id}`} className="mt-3 inline-block font-display text-xs font-semibold text-accent hover:underline">Open page review — pin notes exactly where they apply →</a>
+                ) : null}
               </div>
             ))}
           </div>
@@ -119,14 +122,25 @@ export default async function PortalHome() {
         <section className="rounded-2xl border border-line bg-coal p-6">
           <p className="kicker mb-5">Deliverables</p>
           <ul className="space-y-2.5">
-            {ws.deliverables.length ? ws.deliverables.map((d) => (
-              <li key={d.id} className="flex items-center justify-between gap-3 rounded-xl border border-line/60 bg-carbon p-4">
-                <span className="font-display text-sm font-semibold">{d.title}</span>
-                <span className={cx("rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-widest", STATUS_STYLE[d.status] ?? "border-line text-mute")}>
-                  {d.status}
-                </span>
-              </li>
-            )) : <li className="text-sm text-mute">Deliverables appear here as work progresses.</li>}
+            {ws.deliverables.length ? ws.deliverables.map((d) => {
+              const notes = ws.comments.filter((c) => c.deliverableId === d.id && !c.resolved).length;
+              return (
+                <li key={d.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line/60 bg-carbon p-4">
+                  <span className="font-display text-sm font-semibold">
+                    {d.title}
+                    {notes ? <span className="ms-2 rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] text-accent">{notes} open note{notes > 1 ? "s" : ""}</span> : null}
+                  </span>
+                  <span className="flex items-center gap-3">
+                    {d.pages?.length ? (
+                      <a href={`/portal/review/${d.id}`} className="font-display text-xs font-semibold text-accent hover:underline">Review →</a>
+                    ) : null}
+                    <span className={cx("rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-widest", STATUS_STYLE[d.status] ?? "border-line text-mute")}>
+                      {d.status}
+                    </span>
+                  </span>
+                </li>
+              );
+            }) : <li className="text-sm text-mute">Deliverables appear here as work progresses.</li>}
           </ul>
         </section>
       </div>

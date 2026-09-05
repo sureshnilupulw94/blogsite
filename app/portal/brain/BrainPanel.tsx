@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 
 type Result = { passages: { title: string; snippet: string }[]; answer: string | null; engine: string };
 
-export default function BrainPanel() {
+export default function BrainPanel({ which, examples }: { which: "brand" | "business"; examples: string[] }) {
   const [q, setQ] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "done" | "empty" | "error">("idle");
   const [result, setResult] = useState<Result | null>(null);
@@ -17,7 +17,7 @@ export default function BrainPanel() {
       const res = await fetch("/api/portal/brain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ q }),
+        body: JSON.stringify({ q, which }),
       });
       const data = await res.json();
       if (!data.ok) {
@@ -31,15 +31,13 @@ export default function BrainPanel() {
     }
   }
 
-  const examples = ["What is our tagline?", "Which words are banned?", "What are the brand colours?", "Company facts for a proposal"];
-
   return (
     <div>
       <form onSubmit={ask} className="flex flex-col gap-3 sm:flex-row">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Ask the Brand Brain — voice, colours, facts, rules…"
+          placeholder={which === "brand" ? "Ask the Brand Brain — voice, colours, facts, rules…" : "Ask the Business Brain — policies, SOPs, processes, FAQs…"}
           className="w-full rounded-xl border border-line bg-carbon px-4 py-3 text-sm focus:border-accent/60 focus:outline-none"
         />
         <button type="submit" disabled={state === "loading"} className="whitespace-nowrap rounded-full bg-accent px-7 py-3 font-display text-sm font-semibold text-accent-ink disabled:opacity-60">

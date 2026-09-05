@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
@@ -15,8 +15,16 @@ import {
   createLoginToken,
   MAX_UPLOAD_BYTES,
 } from "@/lib/portal";
+import { smtpConfigured, sendMail, magicLinkEmail } from "@/lib/mailer";
 
 export type MagicLinkState = { ok: boolean; message: string; devLink?: string } | null;
+
+async function baseUrl() {
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("host") ?? "localhost:3000";
+  return `${proto}://${host}`;
+}
 
 export async function requestMagicLink(_prev: MagicLinkState, formData: FormData): Promise<MagicLinkState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -27,13 +35,33 @@ export async function requestMagicLink(_prev: MagicLinkState, formData: FormData
     return { ok: false, message: "No portal account found for this email. Ask the studio to set one up." };
   }
 
-  if (process.env.PORTAL_DEV_LINKS === "off") {
-    return { ok: true, message: "Login link sent — check your inbox. It expires in 30 minutes." };
+  const link = `${await baseUrl()}/portal/auth?token=${token}`;
+  const hideDev = process.env.PORTAL_DEV_LINKS === "off";
+
+  if (smtpConfigured()) {
+    const mail = magicLinkEmail(link);
+    const sent = await sendMail({ to: email, ...mail });
+    if (sent) {
+      return {
+        ok: true,
+        message: "Login link sent — check your inbox. It expires in 30 minutes.",
+        devLink: hideDev ? undefined : link,
+      };
+    }
+    return {
+      ok: true,
+      message: "The email couldn't be sent just now — use the link below this time.",
+      devLink: link,
+    };
+  }
+
+  if (hideDev) {
+    return { ok: true, message: "Login link created but email isn't configured (SMTP_HOST/SMTP_FROM). Ask the studio." };
   }
   return {
     ok: true,
-    message: "Dev mode: use the link below (in production this is emailed). Expires in 30 minutes, single use.",
-    devLink: `/portal/auth?token=${token}`,
+    message: "Dev mode (no SMTP configured): use the link below. It expires in 30 minutes, single use.",
+    devLink: link,
   };
 }
 
@@ -101,6 +129,50 @@ export async function requestRevision(formData: FormData) {
   revalidatePath("/portal");
 }
 
+/* ---------- pixel-anchored document feedback ---------- */
+
+export async function addFeedback(formData: FormData) {
+  const session = await requirePortal();
+  const deliverableId = String(formData.get("deliverableId") ?? "");
+  const message = String(formData.get("message") ?? "").trim().slice(0, 500);
+  const page = Number(formData.get("page") ?? 0);
+  const x = Number(formData.get("x") ?? 0);
+  const y = Number(formData.get("y") ?? 0);
+  if (!message || !deliverableId) return;
+  await mutateWorkspace(session.slug, (ws) => {
+    const d = ws.deliverables.find((x2) => x2.id === deliverableId);
+    if (!d) return;
+    ws.comments.push({
+      id: randomUUID(),
+      deliverableId,
+      author: session.email,
+      message,
+      at: new Date().toISOString(),
+      resolved: false,
+      page: Number.isFinite(page) ? page : undefined,
+      x: Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : undefined,
+      y: Number.isFinite(y) ? Math.min(100, Math.max(0, y)) : undefined,
+    });
+    pushActivity(ws, `Note added on ${d.title}${page ? ` — page ${page}` : ""}: “${message.slice(0, 60)}${message.length > 60 ? "…" : ""}”`);
+  });
+  revalidatePath(`/portal/review/${deliverableId}`);
+  revalidatePath("/portal");
+}
+
+export async function resolveFeedback(formData: FormData) {
+  const session = await requirePortal();
+  const id = String(formData.get("id") ?? "");
+  const deliverableId = String(formData.get("deliverableId") ?? "");
+  await mutateWorkspace(session.slug, (ws) => {
+    const c = ws.comments.find((x) => x.id === id);
+    if (!c) return;
+    c.resolved = !c.resolved;
+    pushActivity(ws, `Note ${c.resolved ? "resolved" : "reopened"}: “${c.message.slice(0, 60)}…”`);
+  });
+  if (deliverableId) revalidatePath(`/portal/review/${deliverableId}`);
+  revalidatePath("/portal");
+}
+
 /* ---------- files ---------- */
 
 export async function uploadFile(formData: FormData) {
@@ -115,13 +187,14 @@ export async function uploadFile(formData: FormData) {
   revalidatePath("/portal");
 }
 
-/* ---------- brand brain ---------- */
+/* ---------- brains ---------- */
 
 export async function addKnowledge(formData: FormData) {
   const session = await requirePortal();
+  const which = String(formData.get("which") ?? "brand") === "business" ? "business" : "brand";
   const title = String(formData.get("title") ?? "").slice(0, 120);
   const text = String(formData.get("text") ?? "").slice(0, 20000);
-  await addBrainEntry(session.slug, title, text);
-  revalidatePath("/portal/brain");
+  await addBrainEntry(session.slug, which, title, text);
+  revalidatePath(which === "business" ? "/portal/business-brain" : "/portal/brain");
   revalidatePath("/portal");
 }

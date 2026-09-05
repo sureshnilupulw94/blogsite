@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ADMIN_COOKIE, adminToken } from "@/lib/admin";
 import { updateLeadStatus } from "@/lib/leads";
-import { createPortalClient, createLoginToken } from "@/lib/portal";
+import { createPortalClient, createLoginToken, mutateWorkspace, pushActivity, type DeliverableStatus } from "@/lib/portal";
 
 export async function login(formData: FormData) {
   const token = String(formData.get("token") ?? "");
@@ -65,4 +65,37 @@ export async function makeLoginLink(formData: FormData) {
     redirect(`/admin/clients?error=${encodeURIComponent("No account for that email.")}`);
   }
   redirect(`/admin/clients?link=${encodeURIComponent(`/portal/auth?token=${token}`)}`);
+}
+
+/* ---------- studio-side project management ---------- */
+
+export async function setDeliverableStatus(formData: FormData) {
+  await assertAdmin();
+  const slug = String(formData.get("slug") ?? "");
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "draft");
+  const allowed: DeliverableStatus[] = ["draft", "internal", "client-review", "revision", "approved", "final"];
+  if (!slug || !id || !allowed.includes(status as DeliverableStatus)) return;
+  await mutateWorkspace(slug, (ws) => {
+    const d = ws.deliverables.find((x) => x.id === id);
+    if (!d) return;
+    d.status = status as DeliverableStatus;
+    d.updatedAt = new Date().toISOString();
+    pushActivity(ws, `Studio moved ${d.title} to “${status}”.`);
+  });
+  revalidatePath(`/admin/projects/${slug}`);
+}
+
+export async function toggleFeedback(formData: FormData) {
+  await assertAdmin();
+  const slug = String(formData.get("slug") ?? "");
+  const id = String(formData.get("id") ?? "");
+  if (!slug || !id) return;
+  await mutateWorkspace(slug, (ws) => {
+    const c = ws.comments.find((x) => x.id === id);
+    if (!c) return;
+    c.resolved = !c.resolved;
+    pushActivity(ws, `Studio ${c.resolved ? "resolved" : "reopened"} a note: “${c.message.slice(0, 60)}…”`);
+  });
+  revalidatePath(`/admin/projects/${slug}`);
 }

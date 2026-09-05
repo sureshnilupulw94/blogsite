@@ -17,10 +17,11 @@ export type PortalClient = { slug: string; email: string; company: string; creat
 export type PortalSession = { email: string; slug: string; exp: number };
 export type Milestone = { id: string; title: string; status: "done" | "current" | "todo"; awaiting?: boolean };
 export type DeliverableStatus = "draft" | "internal" | "client-review" | "revision" | "approved" | "final";
-export type Deliverable = { id: string; title: string; status: DeliverableStatus; updatedAt: string };
+export type DocPage = { n: number; title: string; body: string[] };
+export type Deliverable = { id: string; title: string; status: DeliverableStatus; updatedAt: string; pages?: DocPage[] };
 export type PortalFile = { id: string; name: string; size: number; category: string; uploadedAt: string; path: string };
 export type BrainEntry = { id: string; title: string; addedAt: string; chunks: string[] };
-export type PortalComment = { id: string; deliverableId: string; author: string; message: string; at: string; resolved: boolean };
+export type PortalComment = { id: string; deliverableId: string; author: string; message: string; at: string; resolved: boolean; page?: number; x?: number; y?: number };
 export type Activity = { at: string; text: string };
 export type Workspace = {
   project: { name: string; stage: string; nextAction: string; updatedAt: string };
@@ -28,6 +29,7 @@ export type Workspace = {
   deliverables: Deliverable[];
   files: PortalFile[];
   brain: BrainEntry[];
+  businessBrain: BrainEntry[];
   comments: PortalComment[];
   activity: Activity[];
 };
@@ -149,6 +151,7 @@ export function defaultWorkspace(projectName: string): Workspace {
     deliverables: [],
     files: [],
     brain: [],
+    businessBrain: [],
     comments: [],
     activity: [{ at: new Date().toISOString(), text: "Project workspace created." }],
   };
@@ -216,18 +219,56 @@ export function chunkText(text: string): string[] {
   return chunks.length ? chunks : [text.slice(0, 800)];
 }
 
-export async function addBrainEntry(slug: string, title: string, text: string): Promise<BrainEntry | { error: string }> {
+export async function addBrainEntry(slug: string, which: "brand" | "business", title: string, text: string): Promise<BrainEntry | { error: string }> {
   if (text.trim().length < 20) return { error: "Add at least a few sentences of knowledge." };
   const entry: BrainEntry = { id: randomUUID(), title: title.trim() || "Untitled note", addedAt: new Date().toISOString(), chunks: chunkText(text) };
   await mutateWorkspace(slug, (ws) => {
-    ws.brain.unshift(entry);
-    pushActivity(ws, `Brand Brain updated: ${entry.title}`);
+    if (which === "business") {
+      ws.businessBrain.unshift(entry);
+      pushActivity(ws, `Business Brain updated: ${entry.title}`);
+    } else {
+      ws.brain.unshift(entry);
+      pushActivity(ws, `Brand Brain updated: ${entry.title}`);
+    }
   });
   return entry;
 }
 
+const STOPWORDS = new Set([
+  "the", "and", "for", "are", "was", "were", "has", "had", "have", "what", "which", "who", "whom",
+  "how", "does", "did", "do", "you", "your", "our", "ours", "with", "from", "that", "this", "these",
+  "those", "there", "here", "when", "where", "why", "will", "would", "can", "could", "should",
+  "about", "into", "over", "under", "again", "then", "them", "they", "their", "been", "being",
+  "any", "all", "each", "more", "most", "other", "some", "such", "only", "own", "same", "than",
+  "too", "very", "just", "also", "get", "got", "use", "using", "one", "two",
+]);
+
+export function queryTerms(query: string): string[] {
+  return Array.from(
+    new Set(
+      query
+        .toLowerCase()
+        .split(/[^\p{L}\p{N}]+/u)
+        .filter((t) => t.length > 2 && !STOPWORDS.has(t))
+    )
+  );
+}
+
+/** Index of the first occurrence of any term (or its 5-char stem) — for snippet centering. -1 if none. */
+export function firstMatchIndex(lowerHaystack: string, terms: string[]): number {
+  let best = -1;
+  for (const t of terms) {
+    const probes = t.length > 5 ? [t, t.slice(0, 5)] : [t];
+    for (const p of probes) {
+      const i = lowerHaystack.indexOf(p);
+      if (i !== -1 && (best === -1 || i < best)) best = i;
+    }
+  }
+  return best;
+}
+
 export function searchBrain(brain: BrainEntry[], query: string, limit = 6) {
-  const tokens = Array.from(new Set(query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((t) => t.length > 2)));
+  const tokens = queryTerms(query);
   if (!tokens.length) return [];
   const hits: { title: string; chunk: string; score: number }[] = [];
   for (const entry of brain) {
@@ -235,11 +276,15 @@ export function searchBrain(brain: BrainEntry[], query: string, limit = 6) {
       const lower = chunk.toLowerCase();
       let score = 0;
       for (const t of tokens) {
-        let idx = lower.indexOf(t);
-        while (idx !== -1) {
-          score += 1;
-          idx = lower.indexOf(t, idx + t.length);
-        }
+        // exact match counts full; fall back to a 5-char stem prefix (cheap stemming)
+        const probes = t.length > 5 ? [t, t.slice(0, 5)] : [t];
+        probes.forEach((probe, weight) => {
+          let idx = lower.indexOf(probe);
+          while (idx !== -1) {
+            score += weight === 0 ? 2 : 1;
+            idx = lower.indexOf(probe, idx + probe.length);
+          }
+        });
       }
       if (score > 0) hits.push({ title: entry.title, chunk, score });
     }
@@ -284,13 +329,73 @@ Company facts: founded 2014 · 48 staff · offices in Colombo and Kandy · servi
 
 Signature rules: every email ends with "Forward, together." on its own line, then name and role. No inspirational quotes in signatures.`;
 
+const ACME_BUSINESS_BRAIN = `Order intake SOP: All orders arrive via the portal, email or phone. Phone orders must be entered in the portal before 4pm the same day. Always confirm the customer code, delivery address and time window. Flag any order above LKR 500,000 for finance review before confirmation.
+
+Refund policy: full refund if cancelled before dispatch. After dispatch a 15% restocking fee applies to standard goods; cold chain goods are non-refundable once dispatched. Refunds are processed within 7 working days to the original payment method.
+
+Delayed shipment escalation: if a delivery slips more than 2 hours past the window — 1) the driver calls dispatch, 2) dispatch informs the customer with a new ETA, 3) any slip over 6 hours escalates to the operations manager, and the account manager sends a written apology with a LKR 2,500 service credit.
+
+Discount approvals: sales reps may offer up to 5%. 5–10% requires the sales manager. Above 10% requires a director. Every discount is recorded in the CRM with a reason code.
+
+Company FAQ: offices in Colombo (HQ) and Kandy · 14 cold-chain vehicles · 3 warehouses totalling 22,000 sqm · 48 staff · ISO 9001 since 2019 · average on-time delivery 96.4%.`;
+
+const PROFILE_PAGES: DocPage[] = [
+  {
+    n: 1,
+    title: "ACME LOGISTICS",
+    body: ["Company Profile — 2026", "Forward, together."],
+  },
+  {
+    n: 2,
+    title: "Who we are",
+    body: [
+      "Acme Logistics moves what matters across Sri Lanka — reliably, visibly, and without drama. Since 2014 we have grown from one warehouse in Colombo to a national network covering warehousing, last-mile delivery, customs clearance and cold chain.",
+      "48 people, three warehouses, fourteen cold-chain vehicles, and one conviction: logistics is a promise kept on a schedule.",
+    ],
+  },
+  {
+    n: 3,
+    title: "What we do",
+    body: [
+      "Warehousing — 22,000 sqm across three sites, ISO 9001 certified since 2019.",
+      "Last-mile delivery — nationwide coverage with live tracking and 96.4% on-time performance.",
+      "Customs clearance — in-house brokerage team, average clearance under 24 hours.",
+      "Cold chain — temperature-controlled transport for food and pharma, end-to-end monitored.",
+    ],
+  },
+  {
+    n: 4,
+    title: "Why Acme",
+    body: [
+      "One accountable partner from port to doorstep.",
+      "Live visibility on every shipment — no chasing, no guessing.",
+      "96.4% on-time. Audited. Insured. Obsessive about it.",
+      "Let's move what matters. hello@acme.example · +94 11 000 0000",
+    ],
+  },
+];
+
 export async function ensureSeeded() {
-  // self-heal: any client without a workspace gets one
   const clients = await listClients();
+
+  // migrate + self-heal existing workspaces
   for (const c of clients) {
-    if (!(await readWorkspace(c.slug))) {
+    const ws = await readWorkspace(c.slug);
+    if (!ws) {
       await writeWorkspace(c.slug, defaultWorkspace("New Engagement"));
+      continue;
     }
+    let dirty = false;
+    if (!Array.isArray(ws.businessBrain)) {
+      ws.businessBrain = [];
+      dirty = true;
+    }
+    const profile = ws.deliverables.find((d) => d.title.startsWith("Company Profile"));
+    if (profile && !profile.pages) {
+      profile.pages = PROFILE_PAGES;
+      dirty = true;
+    }
+    if (dirty) await writeWorkspace(c.slug, ws);
   }
   if (clients.length) return;
 
@@ -307,18 +412,23 @@ export async function ensureSeeded() {
       { id: randomUUID(), title: "Final delivery", status: "todo" },
     ];
     ws.deliverables = [
-      { id: randomUUID(), title: "Company Profile — v03", status: "client-review", updatedAt: new Date().toISOString() },
+      { id: randomUUID(), title: "Company Profile — v03", status: "client-review", updatedAt: new Date().toISOString(), pages: PROFILE_PAGES },
       { id: randomUUID(), title: "Website copy — v02", status: "approved", updatedAt: new Date().toISOString() },
       { id: randomUUID(), title: "Investor one-pager — v01", status: "draft", updatedAt: new Date().toISOString() },
     ];
+    const profileId = ws.deliverables[0].id;
     ws.brain = [{ id: randomUUID(), title: "ACME Brand Guidelines (summary)", addedAt: new Date().toISOString(), chunks: chunkText(ACME_BRAIN) }];
+    ws.businessBrain = [{ id: randomUUID(), title: "ACME Operations Knowledge", addedAt: new Date().toISOString(), chunks: chunkText(ACME_BUSINESS_BRAIN) }];
     ws.comments = [
-      { id: randomUUID(), deliverableId: ws.deliverables[0].id, author: "studio", message: "v03 uploaded — new structure per Tuesday's call. Kept the green deeper per brand guidelines.", at: new Date().toISOString(), resolved: false },
+      { id: randomUUID(), deliverableId: profileId, author: "demo@acme.example", message: "Can we make this heading stronger? 'Who we are' feels flat.", at: new Date().toISOString(), resolved: false, page: 2, x: 50, y: 12 },
+      { id: randomUUID(), deliverableId: profileId, author: "demo@acme.example", message: "Add the Kandy warehouse here too, please.", at: new Date().toISOString(), resolved: false, page: 3, x: 28, y: 46 },
+      { id: randomUUID(), deliverableId: profileId, author: "demo@acme.example", message: "Tagline could be bigger on the cover.", at: new Date().toISOString(), resolved: true, page: 1, x: 50, y: 78 },
     ];
     ws.activity = [
       { at: new Date().toISOString(), text: "Company Profile v03 moved to client review." },
-      { at: new Date().toISOString(), text: "Website copy v02 approved." },
+      { at: new Date().toISOString(), text: "Business Brain initialised from operations handbook." },
       { at: new Date().toISOString(), text: "Brand Brain initialised from brand guidelines." },
+      { at: new Date().toISOString(), text: "Website copy v02 approved." },
     ];
   });
 }

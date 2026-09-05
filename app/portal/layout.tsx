@@ -25,6 +25,7 @@ export default async function PortalLayout({ children }: { children: React.React
               <Link href="/portal" className="rounded-full px-3 py-2 text-mute transition-colors hover:text-paper">Workspace</Link>
               <Link href="/portal/files" className="rounded-full px-3 py-2 text-mute transition-colors hover:text-paper">Files</Link>
               <Link href="/portal/brain" className="rounded-full px-3 py-2 text-mute transition-colors hover:text-paper">Brand Brain</Link>
+              <Link href="/portal/business-brain" className="rounded-full px-3 py-2 text-mute transition-colors hover:text-paper">Business Brain</Link>
               <form action={logoutPortal}>
                 <button type="submit" className="rounded-full border border-line px-4 py-2 font-mono text-xs text-mute hover:text-paper">Log out</button>
               </form>
