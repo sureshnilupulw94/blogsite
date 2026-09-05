@@ -48,6 +48,7 @@ export const roadmap = [
   { status: "done", title: "Products & membership", desc: "Digital products, Agency+ tiers, events and the 2027 research report." },
   { status: "done", title: "Marketplace checkout", desc: "Reserve products & membership — orders tracked, manual fulfilment in beta." },
   { status: "done", title: "Community hub", desc: "Office hours, workshop room, founding cohort." },
+  { status: "done", title: "Content factory", desc: "Draft skeletons from ideas, repurposing engine, publish calendar + ICS feed." },
   { status: "next", title: "Stripe payments", desc: "Card capture at checkout for products, membership and tickets." },
 ];
 

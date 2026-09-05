@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/admin";
 import { readJsonStore } from "@/lib/leads";
-import { addContentItem, moveContentItem, deleteContentItem, type ContentItem } from "../actions";
+import { addContentItem, moveContentItem, deleteContentItem, generateDraft, scheduleContentItem, type ContentItem } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -43,8 +43,20 @@ export default async function ContentPage() {
                 {colItems.map((item) => (
                   <div key={item.id} className="rounded-xl border border-line/60 bg-carbon p-4">
                     <p className="text-sm leading-snug text-paper">{item.title}</p>
-                    <p className="mt-1.5 font-mono text-[10px] text-mute">{item.assignee ?? "unassigned"} · {new Date(item.updatedAt).toLocaleDateString()}</p>
+                    <p className="mt-1.5 font-mono text-[10px] text-mute">{item.assignee ?? "unassigned"} · {new Date(item.updatedAt).toLocaleDateString()}{item.publishAt ? ` · 📅 ${item.publishAt}` : ""}</p>
+                    {item.draft ? (
+                      <details className="mt-2">
+                        <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-widest text-accent">Draft</summary>
+                        <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-line/60 bg-ink/60 p-3 text-[11px] leading-relaxed text-mute">{item.draft}</pre>
+                      </details>
+                    ) : null}
                     <div className="mt-3 flex items-center gap-2">
+                      {item.stage === "idea" ? (
+                        <form action={generateDraft}>
+                          <input type="hidden" name="id" value={item.id} />
+                          <button type="submit" className="rounded-full border border-accent/50 px-2.5 py-1 font-mono text-[10px] text-accent hover:bg-accent/10">✎ Draft it</button>
+                        </form>
+                      ) : null}
                       {col.key !== "idea" ? (
                         <form action={moveContentItem}>
                           <input type="hidden" name="id" value={item.id} />
@@ -64,6 +76,14 @@ export default async function ContentPage() {
                         <button type="submit" aria-label="Delete" className="rounded-full border border-line px-2.5 py-1 font-mono text-[10px] text-mute hover:text-red-300">✕</button>
                       </form>
                     </div>
+                    {col.key === "scheduled" || item.publishAt ? (
+                      <form action={scheduleContentItem} className="mt-3 flex items-center gap-2 border-t border-line/50 pt-3">
+                        <input type="hidden" name="id" value={item.id} />
+                        <label className="font-mono text-[10px] uppercase tracking-widest text-mute">📅</label>
+                        <input type="date" name="date" defaultValue={item.publishAt ?? ""} className="w-full rounded-lg border border-line bg-ink/60 px-2 py-1 font-mono text-[10px] text-paper focus:border-accent/60 focus:outline-none" />
+                        <button type="submit" className="rounded-full border border-line px-2.5 py-1 font-mono text-[10px] text-mute hover:text-paper">set</button>
+                      </form>
+                    ) : null}
                   </div>
                 ))}
                 {!colItems.length ? <p className="rounded-xl border border-dashed border-line/60 p-4 text-center text-xs text-mute/60">empty</p> : null}
