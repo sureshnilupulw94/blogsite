@@ -23,6 +23,26 @@ export async function recordEvent(payload: Record<string, unknown>) {
   await append("events.jsonl", { at: new Date().toISOString(), ...payload });
 }
 
+/* ---------- generic json store (admin-side collections) ---------- */
+
+export async function readJsonStore<T>(file: string, fallback: T): Promise<T> {
+  try {
+    return JSON.parse(await readFile(path.join(dataDir, file), "utf8")) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function writeJsonStore(file: string, data: unknown) {
+  await ensureDir();
+  await writeFile(path.join(dataDir, file), JSON.stringify(data, null, 2), "utf8");
+}
+
+export async function readLeadById(id: string): Promise<LeadRecord | null> {
+  const all = await readAll<LeadRecord>("leads.jsonl");
+  return all.find((l) => l.id === id) ?? null;
+}
+
 export async function readAll<T>(file: string): Promise<T[]> {
   try {
     const raw = await readFile(path.join(dataDir, file), "utf8");

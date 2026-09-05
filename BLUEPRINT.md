@@ -76,10 +76,15 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 
 ## Phase 5 — Agency operating system (internal /studio)
 
-- ⬜ Leads inbox + AI lead analysis (recommended services, effort, risks)
-- ⬜ Proposal generator (brief → scope → pricing → timeline → terms)
-- ⬜ Projects, tasks, time, finance, team, content pipeline
-- ⬜ AI content factory pipeline (Brand Voice → Knowledge Base → draft → human review → client review → approved)
+- ✅ **AI lead analysis** — one click per lead in `/admin/leads`: recommended services (primary first), studio-day effort estimate, indicative price band, suggested team, risks, and win-notes. LLM-backed when a key is set, deterministic engine otherwise
+- ✅ **Proposal generator** — `/admin/proposals/new`: client + objective + services + commercials → auto-drafted scope (from service deliverables), CREATE phases, standard terms → printable/PDF proposal page; status pipeline draft→sent→accepted/declined
+- ✅ **Projects, tasks & time** — task board and time log per project in `/admin/projects/[slug]`
+- ✅ **Finance** — `/admin/finance`: accepted value, pipeline, logged hours, delivery cost (`STUDIO_HOURLY_COST`), gross margin, per-client table, win rate
+- ✅ **Content factory pipeline** — `/admin/content`: idea→draft→review→scheduled→published board
+- ✅ **Studio OS shell** — sticky admin nav across dashboard, leads, projects, clients, proposals, finance, content
+- ⬜ Team directory & roles, rates per person
+- ⬜ AI content factory automation (Brand Voice → draft → reviews) beyond the manual board
+- ⬜ Client-facing proposal share links (currently internal + print)
 
 ## Phase 6 — Audience & revenue products
 
@@ -145,6 +150,7 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 1. ✅ Phase 0+1+2 — foundation, full public website, tools
 2. ✅ Phase 3 — AI concierge, analytics + CRM layer, mini audits
 3. ✅ Phase 4 — client platform: magic-link auth, workspace + approvals, file vault, Brand Brain, admin client management
-4. ⬜ Phase 5 — internal studio OS
+4. ✅ Phase 5 — Studio OS core: AI lead analysis, proposal generator, tasks/time, finance, content pipeline
+5. ⬜ Phase 6/7 — products, community, ops depth
 4. ⬜ Phase 5 — internal studio OS
 5. ⬜ Phase 6/7 — products, community, ops depth

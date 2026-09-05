@@ -22,6 +22,8 @@ export type Deliverable = { id: string; title: string; status: DeliverableStatus
 export type PortalFile = { id: string; name: string; size: number; category: string; uploadedAt: string; path: string };
 export type BrainEntry = { id: string; title: string; addedAt: string; chunks: string[] };
 export type PortalComment = { id: string; deliverableId: string; author: string; message: string; at: string; resolved: boolean; page?: number; x?: number; y?: number };
+export type WorkspaceTask = { id: string; title: string; assignee?: string; done: boolean; createdAt: string };
+export type TimeEntry = { id: string; date: string; minutes: number; who: string; note?: string };
 export type Activity = { at: string; text: string };
 export type Workspace = {
   project: { name: string; stage: string; nextAction: string; updatedAt: string };
@@ -31,6 +33,8 @@ export type Workspace = {
   brain: BrainEntry[];
   businessBrain: BrainEntry[];
   comments: PortalComment[];
+  tasks: WorkspaceTask[];
+  time: TimeEntry[];
   activity: Activity[];
 };
 
@@ -153,6 +157,8 @@ export function defaultWorkspace(projectName: string): Workspace {
     brain: [],
     businessBrain: [],
     comments: [],
+    tasks: [],
+    time: [],
     activity: [{ at: new Date().toISOString(), text: "Project workspace created." }],
   };
 }
@@ -388,6 +394,14 @@ export async function ensureSeeded() {
     let dirty = false;
     if (!Array.isArray(ws.businessBrain)) {
       ws.businessBrain = [];
+      dirty = true;
+    }
+    if (!Array.isArray(ws.tasks)) {
+      ws.tasks = [];
+      dirty = true;
+    }
+    if (!Array.isArray(ws.time)) {
+      ws.time = [];
       dirty = true;
     }
     const profile = ws.deliverables.find((d) => d.title.startsWith("Company Profile"));

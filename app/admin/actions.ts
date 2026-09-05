@@ -4,8 +4,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ADMIN_COOKIE, adminToken } from "@/lib/admin";
-import { updateLeadStatus } from "@/lib/leads";
+import { updateLeadStatus, readLeadById, readJsonStore, writeJsonStore } from "@/lib/leads";
 import { createPortalClient, createLoginToken, mutateWorkspace, pushActivity, type DeliverableStatus } from "@/lib/portal";
+import { analyzeLead, type LeadAnalysis } from "@/lib/analysis";
+import { buildProposal, saveProposal, setProposalStatus, type ProposalStatus } from "@/lib/proposals";
 
 export async function login(formData: FormData) {
   const token = String(formData.get("token") ?? "");
@@ -98,4 +100,134 @@ export async function toggleFeedback(formData: FormData) {
     pushActivity(ws, `Studio ${c.resolved ? "resolved" : "reopened"} a note: “${c.message.slice(0, 60)}…”`);
   });
   revalidatePath(`/admin/projects/${slug}`);
+}
+
+/* ---------- AI lead analysis ---------- */
+
+export async function analyzeLeadAction(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const lead = await readLeadById(id);
+  if (!lead) return;
+  const analysis = await analyzeLead(lead);
+  const store = await readJsonStore<Record<string, LeadAnalysis>>("analyses.json", {});
+  store[id] = analysis;
+  await writeJsonStore("analyses.json", store);
+  revalidatePath("/admin/leads");
+  revalidatePath("/admin");
+}
+
+/* ---------- proposals ---------- */
+
+export async function createProposal(formData: FormData) {
+  await assertAdmin();
+  const services = formData.getAll("services").map(String).filter(Boolean);
+  if (!services.length) redirect("/admin/proposals/new?error=services");
+  const proposal = buildProposal({
+    client: {
+      name: String(formData.get("name") ?? "").slice(0, 120),
+      company: String(formData.get("company") ?? "").slice(0, 120),
+      email: String(formData.get("email") ?? "").slice(0, 160),
+    },
+    objective: String(formData.get("objective") ?? "").slice(0, 600),
+    services,
+    timelineWeeks: Number(formData.get("timelineWeeks") ?? 4),
+    price: Number(formData.get("price") ?? 0),
+    notes: String(formData.get("notes") ?? "").slice(0, 600),
+  });
+  await saveProposal(proposal);
+  revalidatePath("/admin/proposals");
+  redirect(`/admin/proposals/${proposal.id}`);
+}
+
+export async function markProposal(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "") as ProposalStatus;
+  if (!["draft", "sent", "accepted", "declined"].includes(status)) return;
+  await setProposalStatus(id, status);
+  revalidatePath("/admin/proposals");
+  revalidatePath(`/admin/proposals/${id}`);
+  revalidatePath("/admin/finance");
+}
+
+/* ---------- project tasks & time ---------- */
+
+export async function addTask(formData: FormData) {
+  await assertAdmin();
+  const slug = String(formData.get("slug") ?? "");
+  const title = String(formData.get("title") ?? "").trim().slice(0, 200);
+  const assignee = String(formData.get("assignee") ?? "").trim().slice(0, 80);
+  if (!slug || !title) return;
+  await mutateWorkspace(slug, (ws) => {
+    ws.tasks.push({ id: crypto.randomUUID(), title, assignee: assignee || undefined, done: false, createdAt: new Date().toISOString() });
+  });
+  revalidatePath(`/admin/projects/${slug}`);
+}
+
+export async function toggleTask(formData: FormData) {
+  await assertAdmin();
+  const slug = String(formData.get("slug") ?? "");
+  const id = String(formData.get("id") ?? "");
+  if (!slug || !id) return;
+  await mutateWorkspace(slug, (ws) => {
+    const t = ws.tasks.find((x) => x.id === id);
+    if (t) t.done = !t.done;
+  });
+  revalidatePath(`/admin/projects/${slug}`);
+}
+
+export async function logTime(formData: FormData) {
+  await assertAdmin();
+  const slug = String(formData.get("slug") ?? "");
+  const minutes = Math.round(Number(formData.get("minutes") ?? 0));
+  const who = String(formData.get("who") ?? "studio").slice(0, 80);
+  const note = String(formData.get("note") ?? "").slice(0, 200);
+  if (!slug || !Number.isFinite(minutes) || minutes <= 0 || minutes > 24 * 60) return;
+  await mutateWorkspace(slug, (ws) => {
+    ws.time.push({ id: crypto.randomUUID(), date: new Date().toISOString(), minutes, who, note: note || undefined });
+  });
+  revalidatePath(`/admin/projects/${slug}`);
+  revalidatePath("/admin/finance");
+}
+
+/* ---------- content pipeline ---------- */
+
+export type ContentItem = { id: string; title: string; stage: "idea" | "draft" | "review" | "scheduled" | "published"; assignee?: string; updatedAt: string };
+const STAGES: ContentItem["stage"][] = ["idea", "draft", "review", "scheduled", "published"];
+
+export async function addContentItem(formData: FormData) {
+  await assertAdmin();
+  const title = String(formData.get("title") ?? "").trim().slice(0, 200);
+  const assignee = String(formData.get("assignee") ?? "").trim().slice(0, 80);
+  if (!title) return;
+  const items = await readJsonStore<ContentItem[]>("content.json", []);
+  items.unshift({ id: crypto.randomUUID(), title, stage: "idea", assignee: assignee || undefined, updatedAt: new Date().toISOString() });
+  await writeJsonStore("content.json", items);
+  revalidatePath("/admin/content");
+}
+
+export async function moveContentItem(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const dir = String(formData.get("dir") ?? "next");
+  const items = await readJsonStore<ContentItem[]>("content.json", []);
+  const item = items.find((x) => x.id === id);
+  if (!item) return;
+  const idx = STAGES.indexOf(item.stage);
+  const next = dir === "prev" ? idx - 1 : idx + 1;
+  if (next >= 0 && next < STAGES.length) {
+    item.stage = STAGES[next];
+    item.updatedAt = new Date().toISOString();
+    await writeJsonStore("content.json", items);
+  }
+  revalidatePath("/admin/content");
+}
+
+export async function deleteContentItem(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const items = (await readJsonStore<ContentItem[]>("content.json", [])).filter((x) => x.id !== id);
+  await writeJsonStore("content.json", items);
+  revalidatePath("/admin/content");
 }

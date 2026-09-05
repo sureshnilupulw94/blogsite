@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { listClients, readWorkspace } from "@/lib/portal";
-import { setDeliverableStatus, toggleFeedback } from "../../actions";
+import { setDeliverableStatus, toggleFeedback, addTask, toggleTask, logTime } from "../../actions";
 import { cx } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -94,6 +94,53 @@ export default async function AdminProject({ params }: { params: Promise<{ slug:
           )) : <li className="text-sm text-mute">No deliverables yet.</li>}
         </ul>
       </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* tasks */}
+        <section className="rounded-2xl border border-line bg-coal p-6">
+          <p className="kicker mb-4">Tasks ({ws.tasks.filter((t) => t.done).length}/{ws.tasks.length})</p>
+          <form action={addTask} className="mb-4 flex gap-2">
+            <input type="hidden" name="slug" value={slug} />
+            <input name="title" required placeholder="New task…" className="min-w-0 flex-1 rounded-lg border border-line bg-carbon px-3 py-2 text-sm focus:border-accent/60 focus:outline-none" />
+            <input name="assignee" placeholder="who" className="w-20 rounded-lg border border-line bg-carbon px-3 py-2 text-sm focus:border-accent/60 focus:outline-none" />
+            <button type="submit" className="rounded-full bg-accent px-4 py-2 font-display text-xs font-semibold text-accent-ink">Add</button>
+          </form>
+          <ul className="space-y-2">
+            {ws.tasks.length ? ws.tasks.map((t) => (
+              <li key={t.id} className="flex items-center justify-between gap-3 rounded-xl border border-line/60 bg-carbon p-3">
+                <form action={toggleTask} className="flex min-w-0 items-center gap-3">
+                  <input type="hidden" name="slug" value={slug} />
+                  <input type="hidden" name="id" value={t.id} />
+                  <button type="submit" aria-label={t.done ? "Mark open" : "Mark done"} className={cx("grid size-5 shrink-0 place-items-center rounded border font-mono text-[10px]", t.done ? "border-accent text-accent" : "border-line text-transparent hover:border-accent/50")}>✓</button>
+                  <span className={cx("truncate text-sm", t.done ? "text-mute line-through" : "text-paper")}>{t.title}</span>
+                </form>
+                {t.assignee ? <span className="shrink-0 font-mono text-[10px] text-mute">{t.assignee}</span> : null}
+              </li>
+            )) : <li className="text-sm text-mute">No tasks yet.</li>}
+          </ul>
+        </section>
+
+        {/* time */}
+        <section className="rounded-2xl border border-line bg-coal p-6">
+          <p className="kicker mb-4">Time — {Math.round(ws.time.reduce((a, t) => a + t.minutes, 0) / 6) / 10}h logged</p>
+          <form action={logTime} className="mb-4 flex flex-wrap gap-2">
+            <input type="hidden" name="slug" value={slug} />
+            <input name="minutes" type="number" min="5" max="1440" step="5" required placeholder="min" className="w-20 rounded-lg border border-line bg-carbon px-3 py-2 text-sm focus:border-accent/60 focus:outline-none" />
+            <input name="who" placeholder="who" defaultValue="studio" className="w-24 rounded-lg border border-line bg-carbon px-3 py-2 text-sm focus:border-accent/60 focus:outline-none" />
+            <input name="note" placeholder="what was done" className="min-w-32 flex-1 rounded-lg border border-line bg-carbon px-3 py-2 text-sm focus:border-accent/60 focus:outline-none" />
+            <button type="submit" className="rounded-full bg-accent px-4 py-2 font-display text-xs font-semibold text-accent-ink">Log</button>
+          </form>
+          <ul className="max-h-64 space-y-2 overflow-y-auto">
+            {ws.time.length ? [...ws.time].reverse().map((t) => (
+              <li key={t.id} className="rounded-xl border border-line/60 bg-carbon p-3 text-sm">
+                <span className="font-mono text-xs text-accent">{Math.round(t.minutes / 6) / 10}h</span>
+                <span className="ms-2 text-xs text-mute">{t.who}</span>
+                {t.note ? <span className="ms-2 text-xs text-mute/80">— {t.note}</span> : null}
+              </li>
+            )) : <li className="text-sm text-mute">No time logged yet.</li>}
+          </ul>
+        </section>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* milestones */}

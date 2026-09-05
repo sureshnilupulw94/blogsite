@@ -2,7 +2,6 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { readAll, type LeadRecord, type EventRecord } from "@/lib/leads";
 import { enrichLead } from "@/lib/crm";
-import { logout } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -70,16 +69,15 @@ export default async function AdminDashboard() {
         <div className="flex items-center gap-3">
           <Link href="/admin/leads" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">
             Leads →
-          </Link>
-          <Link href="/admin/clients" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">
+          </Link>          <Link href="/admin/clients" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">
             Clients →
           </Link>
           <Link href="/admin/projects" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">
             Projects →
           </Link>
-          <form action={logout}>
-            <button type="submit" className="rounded-full border border-line px-5 py-2.5 font-mono text-xs text-mute hover:text-paper">Log out</button>
-          </form>
+          <Link href="/admin/proposals" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">
+            Proposals →
+          </Link>
         </div>
       </header>
 

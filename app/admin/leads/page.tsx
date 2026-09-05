@@ -1,13 +1,46 @@
 import { requireAdmin } from "@/lib/admin";
 import { readAll, type LeadRecord } from "@/lib/leads";
+import { readJsonStore } from "@/lib/leads";
 import { enrichLead, LEAD_STATUSES } from "@/lib/crm";
-import { logout, setLeadStatus } from "../actions";
+import { getService } from "@/lib/data/services";
+import type { LeadAnalysis } from "@/lib/analysis";
+import { analyzeLeadAction, setLeadStatus } from "../actions";
 
 export const dynamic = "force-dynamic";
+
+function AnalysisBlock({ analysis }: { analysis: LeadAnalysis }) {
+  return (
+    <div className="mt-4 rounded-xl border border-accent/30 bg-ink p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="kicker text-accent">AI analysis</p>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-mute">{analysis.engine} · {new Date(analysis.at).toLocaleDateString()}</span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {analysis.services.map((s, i) => (
+          <span key={s} className={i === 0 ? "rounded-full border border-accent/50 px-3 py-1 font-mono text-[10px] text-accent" : "rounded-full border border-line px-3 py-1 font-mono text-[10px] text-mute"}>
+            {getService(s)?.short ?? s}{i === 0 ? " · primary" : ""}
+          </span>
+        ))}
+      </div>
+      <div className="mt-3 grid gap-3 font-mono text-xs text-mute sm:grid-cols-3">
+        <span>effort: <span className="text-paper">{analysis.effortDays} studio days</span></span>
+        <span>band: <span className="text-paper">{analysis.priceBand}</span></span>
+        <span>team: <span className="text-paper">{analysis.team.join(", ")}</span></span>
+      </div>
+      {analysis.risks.length ? (
+        <ul className="mt-3 space-y-1">
+          {analysis.risks.map((r) => <li key={r} className="text-xs text-yellow-200/80">! {r}</li>)}
+        </ul>
+      ) : null}
+      <p className="mt-3 text-xs leading-relaxed text-mute">{analysis.notes}</p>
+    </div>
+  );
+}
 
 export default async function LeadsPage() {
   await requireAdmin();
   const leads = (await readAll<LeadRecord>("leads.jsonl")).map(enrichLead).sort((a, b) => (a.at < b.at ? 1 : -1));
+  const analyses = await readJsonStore<Record<string, LeadAnalysis>>("analyses.json", {});
 
   return (
     <div>
@@ -18,9 +51,6 @@ export default async function LeadsPage() {
         </div>
         <div className="flex gap-3">
           <a href="/admin" className="rounded-full border border-line px-5 py-2.5 font-display text-sm hover:border-accent/50">← Dashboard</a>
-          <form action={logout}>
-            <button type="submit" className="rounded-full border border-line px-5 py-2.5 font-mono text-xs text-mute hover:text-paper">Log out</button>
-          </form>
         </div>
       </header>
 
@@ -80,6 +110,17 @@ export default async function LeadsPage() {
                 />
                 <button type="submit" className="rounded-full bg-accent px-5 py-2 font-display text-xs font-semibold text-accent-ink">Save</button>
               </form>
+
+              {analyses[lead.id] ? (
+                <AnalysisBlock analysis={analyses[lead.id]} />
+              ) : (
+                <form action={analyzeLeadAction} className="mt-4">
+                  <input type="hidden" name="id" value={lead.id} />
+                  <button type="submit" className="rounded-full border border-accent/40 px-5 py-2 font-display text-xs font-semibold text-accent hover:bg-accent/10">
+                    ⚡ Analyze with AI — services, effort, risks, price band
+                  </button>
+                </form>
+              )}
             </article>
           ))}
         </div>

@@ -42,8 +42,10 @@ export const roadmap = [
   { status: "done", title: "Client Workspace", desc: "Magic-link portal: milestones, approvals, files, activity." },
   { status: "done", title: "Brand & Business Brain", desc: "Per-client knowledge bases — brand voice and internal ops." },
   { status: "done", title: "Document feedback", desc: "Click-on-page notes with open/resolved workflow." },
-  { status: "next", title: "Automated proposal system", desc: "Brief → scoped proposal in minutes." },
-  { status: "later", title: "Studio OS", desc: "The internal operating system: CRM, projects, content, finance." },
+  { status: "done", title: "Proposal generator", desc: "Brief → scoped, printable proposal with CREATE phases and terms." },
+  { status: "done", title: "Studio OS core", desc: "Lead AI analysis, tasks & time, finance margin view, content pipeline." },
+  { status: "next", title: "Client proposal links", desc: "Share proposals with clients via secure links." },
+  { status: "later", title: "Community & products", desc: "Membership, templates, digital products, marketplace." },
 ];
 
 export const statusSystems = [
