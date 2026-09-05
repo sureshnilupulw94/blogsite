@@ -83,7 +83,7 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Content factory pipeline** — `/admin/content`: idea→draft→review→scheduled→published board
 - ✅ **Studio OS shell** — sticky admin nav across dashboard, leads, projects, clients, proposals, finance, content
 - ✅ **Client-facing proposal share links** — unguessable `/p/{token}` pages: the client reads the branded proposal and can **Accept/Decline** directly (status + analytics flow back to the studio); generated from the proposal detail page
-- ⬜ Team directory & roles, rates per person
+- ✅ **Team directory & public rate card** — `/team`: every member with craft, rate per hour and booking note; estimate-first billing explained; direct booking capture per person
 - ⬜ AI content factory automation (Brand Voice → draft → reviews) beyond the manual board
 
 ## Phase 6 — Audience & revenue products
@@ -93,8 +93,10 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Events & workshops** — `/events`: open sessions with register-interest + private corporate program path
 - ✅ **Annual research report** — `/research`: "State of Business AI Adoption 2027" with findings preview, contents and email-gated full report
 - ✅ **Marketplace teaser** — announced on /products; full store later
-- ⬜ Community area (member content, forums, office hours booking)
-- ⬜ Ticketed workshop checkout (payments)
+- ✅ **Marketplace checkout** — `/checkout?item={slug}`: reserve products & membership with no card (manual fulfilment while beta); orders stored, referenced (`FS-XXXX`), visible in admin with paid/fulfilled/cancelled workflow
+- ✅ **Community hub** — `/community`: perks with substance (office hours, workshop room, members' shelf), founding-cohort capture, house rules
+- ⬜ Community forums (member discussions)
+- ⬜ Stripe payments (card capture at checkout)
 - ⬜ Careers experience deepening (applicant tracking exists via leads)
 
 ## Phase 7 — Operations
@@ -104,12 +106,6 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ **Multi-currency display** — packages page currency switcher (USD/LKR/GBP/EUR, indicative conversion)
 - ⬜ Timezone-aware scheduling (calendar integration)
 - ⬜ Payments (Stripe) for products & membership
-
-## Phase 7 — Operations
-
-- ⬜ Real system status page wired to monitoring (static page ✅)
-- ⬜ Project urgency tiers (standard/priority/urgent/emergency) in intake
-- ⬜ Multi-currency & timezone-aware scheduling at intake
 
 ---
 

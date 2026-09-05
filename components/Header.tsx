@@ -44,6 +44,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Dict })
       children: [
         [dict.nav.about, "/about"], [dict.nav.careers, "/careers"], [dict.nav.partners, "/partners"],
         [dict.nav.products, "/products"], [dict.nav.events, "/events"], [dict.nav.research, "/research"],
+        [dict.nav.team, "/team"], [dict.nav.community, "/community"],
         [dict.nav.press, "/press"], [dict.nav.roadmap, "/roadmap"], [dict.nav.status, "/status"], [dict.nav.legal, "/legal"],
       ],
     },

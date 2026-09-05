@@ -7,7 +7,7 @@ const routes = [
   "/insights", "/library", "/tools", "/about", "/careers", "/partners", "/press",
   "/roadmap", "/status", "/contact", "/legal",
   "/tools/website-audit", "/tools/presentation-audit", "/tools/brand-audit", "/tools/process-audit",
-  "/products", "/events", "/research",
+  "/products", "/events", "/research", "/team", "/community", "/checkout",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

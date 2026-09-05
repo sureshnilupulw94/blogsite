@@ -20,6 +20,7 @@ export default function Footer({ locale, dict }: { locale: Locale; dict: Dict })
         [dict.nav.work, "/work"], [dict.nav.podcast, "/podcast"], [dict.nav.ideas, "/ideas"], [dict.nav.insights, "/insights"],
         [dict.nav.library, "/library"], [dict.nav.tools, "/tools"], [dict.nav.studio, "/studio"], [dict.nav.lab, "/lab"],
         [dict.nav.products, "/products"], [dict.nav.events, "/events"], [dict.nav.research, "/research"],
+        [dict.nav.team, "/team"], [dict.nav.community, "/community"],
       ],
     },
     {
