@@ -55,7 +55,13 @@ export async function getSystemStatus(): Promise<{ checks: SystemCheck[]; checke
       state: ai ? "operational" : "operational",
       note: ai ? "LLM-backed concierge, analyses and Brains." : "Running on deterministic engines — set an LLM key for model-grade answers.",
     },
-    { name: "Marketplace & payments", state: "planned", note: "In the lab — see the roadmap." },
+    {
+      name: "Marketplace & payments",
+      state: leadsOk ? "operational" : "degraded",
+      note: leadsOk
+        ? "Store and checkout live — manual payments while in beta."
+        : "Order capture degraded — data store not writable.",
+    },
   ];
 
   return {

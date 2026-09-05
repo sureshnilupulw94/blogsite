@@ -1,8 +1,8 @@
 export const team = [
-  { name: "The Host", role: "Founder & Host", what: "Runs the podcast and strategy engagements.", obsess: "Why clear organizations outperform loud ones.", fav: "The bank knowledge rebuild.", tools: "Recorder, notebook, one hard question.", philosophy: "Clarity is kindness.", ask: "Story structure, positioning, guests." },
-  { name: "The Writer", role: "Head of Writing", what: "Owns voice, argument and every final sentence.", obsess: "Sentences that survive translation.", fav: "The 43→16 deck rebuild.", tools: "Style guide, Brand Brain, red pen.", philosophy: "Human expertise amplified by intelligent systems.", ask: "Voice systems, editing, plain language." },
-  { name: "The Designer", role: "Head of Design", what: "Information design, identity systems, slide architecture.", obsess: "Hierarchy you feel before you read.", fav: "The hotel brand system.", tools: "Grid, type scale, restraint.", philosophy: "Design is communication, not decoration.", ask: "Decks, documents, identity." },
-  { name: "The Engineer", role: "Head of Digital & AI", what: "Builds the sites, automations and Brains.", obsess: "Boring reliability over clever fragility.", fav: "The manufacturer automation.", tools: "Next.js, Python, integrations.", philosophy: "Automate the repeatable; elevate the human.", ask: "Automation, AI readiness, platforms." },
+  { name: "The Host", role: "Founder & Host", rate: { usd: 180, unit: "hour" }, rateNote: "Strategy sprints, hosting, positioning. Book by the hour or as a day.", what: "Runs the podcast and strategy engagements.", obsess: "Why clear organizations outperform loud ones.", fav: "The bank knowledge rebuild.", tools: "Recorder, notebook, one hard question.", philosophy: "Clarity is kindness.", ask: "Story structure, positioning, guests." },
+  { name: "The Writer", role: "Head of Writing", rate: { usd: 140, unit: "hour" }, rateNote: "Voice systems, executive writing, editing. Two-hour minimum.", what: "Owns voice, argument and every final sentence.", obsess: "Sentences that survive translation.", fav: "The 43→16 deck rebuild.", tools: "Style guide, Brand Brain, red pen.", philosophy: "Human expertise amplified by intelligent systems.", ask: "Voice systems, editing, plain language." },
+  { name: "The Designer", role: "Head of Design", rate: { usd: 150, unit: "hour" }, rateNote: "Decks, documents, identity. Day rate $1,000 for workshops.", what: "Information design, identity systems, slide architecture.", obsess: "Hierarchy you feel before you read.", fav: "The hotel brand system.", tools: "Grid, type scale, restraint.", philosophy: "Design is communication, not decoration.", ask: "Decks, documents, identity." },
+  { name: "The Engineer", role: "Head of Digital & AI", rate: { usd: 130, unit: "hour" }, rateNote: "Sites, automations, Brains. Fixed-scope quotes for builds.", what: "Builds the sites, automations and Brains.", obsess: "Boring reliability over clever fragility.", fav: "The manufacturer automation.", tools: "Next.js, Python, integrations.", philosophy: "Automate the repeatable; elevate the human.", ask: "Automation, AI readiness, platforms." },
 ];
 
 export const values = [
@@ -46,8 +46,9 @@ export const roadmap = [
   { status: "done", title: "Studio OS core", desc: "Lead AI analysis, tasks & time, finance margin view, content pipeline." },
   { status: "done", title: "Client proposal links", desc: "Share proposals via unguessable links — clients accept online." },
   { status: "done", title: "Products & membership", desc: "Digital products, Agency+ tiers, events and the 2027 research report." },
-  { status: "next", title: "Marketplace checkout", desc: "Stripe-powered store for products, membership and workshop tickets." },
-  { status: "next", title: "Community area", desc: "Member content, office hours booking, forums." },
+  { status: "done", title: "Marketplace checkout", desc: "Reserve products & membership — orders tracked, manual fulfilment in beta." },
+  { status: "done", title: "Community hub", desc: "Office hours, workshop room, founding cohort." },
+  { status: "next", title: "Stripe payments", desc: "Card capture at checkout for products, membership and tickets." },
 ];
 
 export const statusSystems = [

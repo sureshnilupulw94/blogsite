@@ -3,7 +3,6 @@ import { getDict } from "@/lib/dictionaries";
 import { isLocale, localePath, type Locale } from "@/lib/i18n";
 import { products, membership } from "@/lib/data/products";
 import { Badge, Btn, Card, CheckList, PageHero, Section, SectionHeading, cx } from "@/components/ui";
-import { MiniCapture } from "@/components/forms";
 import Reveal from "@/components/Reveal";
 
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -37,7 +36,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
                 <p className="mt-2 text-sm leading-relaxed text-mute">{product.blurb}</p>
                 <div className="mt-4 flex-1"><CheckList items={product.includes} /></div>
                 <div className="mt-5">
-                  <MiniCapture dict={d} cta="Get it" payload={{ type: "product", product: product.slug }} />
+                  <Btn href={p(`/checkout?item=${product.slug}`)}>Get it — ${product.priceUsd}</Btn>
                 </div>
               </Card>
             </Reveal>
@@ -65,7 +64,11 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
                   </p>
                   <div className="mt-5 flex-1"><CheckList items={tier.includes} /></div>
                   <div className="mt-5">
-                    <MiniCapture dict={d} cta={tier.priceUsd ? "Join" : "Talk to us"} payload={{ type: "membership", tier: tier.slug }} />
+                    {tier.priceUsd ? (
+                      <Btn href={p(`/checkout?item=${tier.slug}`)} variant={tier.featured ? "primary" : "ghost"}>Join {tier.name}</Btn>
+                    ) : (
+                      <Btn href={p("/contact")} variant="ghost">Talk to us</Btn>
+                    )}
                   </div>
                 </Card>
               </Reveal>

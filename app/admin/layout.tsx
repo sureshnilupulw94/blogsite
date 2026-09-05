@@ -10,6 +10,7 @@ const NAV = [
   ["/admin/projects", "Projects"],
   ["/admin/clients", "Clients"],
   ["/admin/proposals", "Proposals"],
+  ["/admin/orders", "Orders"],
   ["/admin/finance", "Finance"],
   ["/admin/content", "Content"],
 ] as const;
