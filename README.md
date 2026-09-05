@@ -17,8 +17,9 @@ npm run dev      # http://localhost:3000
 npm run build && npm start
 ```
 
-- **Studio CRM**: visit `/admin` (dev token: `flagship-dev` — set `ADMIN_TOKEN` in production)
-- **AI Concierge**: works out of the box (rules engine); set any LLM key from `.env.example` for LLM-grade recommendations
+- **Studio CRM**: visit `/admin` (dev token: `flagship-dev` — set `ADMIN_TOKEN` in production). Leads, analytics and **client portal accounts** (`/admin/clients`)
+- **Client portal**: visit `/portal/login` and use the seeded demo `demo@acme.example` (dev mode shows the one-time login link inline). Workspace, approvals, files, Brand Brain
+- **AI Concierge**: works out of the box (rules engine); set any LLM key from `.env.example` for LLM-grade recommendations — the same key powers Brand Brain answers
 
 ## Structure
 

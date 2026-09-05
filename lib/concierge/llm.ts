@@ -19,6 +19,12 @@ Given a client intake, recommend an approach. Respond ONLY with valid JSON of sh
 Allowed service slugs: ${services.map((s) => s.slug).join(", ")}.
 Rules: rationale is 2-3 sentences referencing what the client actually said; 3-5 phases; 1-3 concrete risks; 1-3 questions still open; nextStep is one actionable sentence.`;
 
+function extractJson(text: string): unknown {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("no json");
+  return JSON.parse(match[0]);
+}
+
 function config() {
   if (process.env.CONCIERGE_API_URL && process.env.CONCIERGE_API_KEY) {
     return { kind: "openai-compatible" as const, url: process.env.CONCIERGE_API_URL, key: process.env.CONCIERGE_API_KEY, model: process.env.CONCIERGE_MODEL ?? "gpt-4o-mini" };
@@ -39,60 +45,64 @@ export function llmAvailable() {
   return config() !== null;
 }
 
-function extractJson(text: string): unknown {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("no json");
-  return JSON.parse(match[0]);
+/** Provider-agnostic chat call. Returns null on any failure — callers handle fallback. */
+export async function llmChat(system: string, user: string, maxTokens = 700): Promise<string | null> {
+  const cfg = config();
+  if (!cfg) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    if (cfg.kind === "anthropic") {
+      const res = await fetch(cfg.url, {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json", "x-api-key": cfg.key, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: cfg.model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
+      });
+      if (!res.ok) throw new Error(`anthropic ${res.status}`);
+      const data = await res.json();
+      return data.content?.[0]?.text ?? null;
+    }
+    if (cfg.kind === "gemini") {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent?key=${cfg.key}`, {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ parts: [{ text: user }] }] }),
+      });
+      if (!res.ok) throw new Error(`gemini ${res.status}`);
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+    }
+    const res = await fetch(cfg.url, {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` },
+      body: JSON.stringify({ model: cfg.model, temperature: 0.4, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
+    });
+    if (!res.ok) throw new Error(`openai ${res.status}`);
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content ?? null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function recommendWithLLM(input: ConciergeInput): Promise<Recommendation | null> {
   const cfg = config();
   if (!cfg) return null;
 
-  const user = JSON.stringify(input);
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
   try {
-    let text = "";
-    if (cfg.kind === "anthropic") {
-      const res = await fetch(cfg.url, {
-        method: "POST",
-        signal: controller.signal,
-        headers: { "Content-Type": "application/json", "x-api-key": cfg.key, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: cfg.model, max_tokens: 700, system: SYSTEM_PROMPT, messages: [{ role: "user", content: user }] }),
-      });
-      if (!res.ok) throw new Error(`anthropic ${res.status}`);
-      const data = await res.json();
-      text = data.content?.[0]?.text ?? "";
-    } else if (cfg.kind === "gemini") {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent?key=${cfg.key}`, {
-        method: "POST",
-        signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }, contents: [{ parts: [{ text: user }] }] }),
-      });
-      if (!res.ok) throw new Error(`gemini ${res.status}`);
-      const data = await res.json();
-      text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    } else {
-      const res = await fetch(cfg.url, {
-        method: "POST",
-        signal: controller.signal,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` },
-        body: JSON.stringify({ model: cfg.model, temperature: 0.4, response_format: { type: "json_object" }, messages: [{ role: "system", content: SYSTEM_PROMPT }, { role: "user", content: user }] }),
-      });
-      if (!res.ok) throw new Error(`openai ${res.status}`);
-      const data = await res.json();
-      text = data.choices?.[0]?.message?.content ?? "";
-    }
-
+    const text = await llmChat(SYSTEM_PROMPT, JSON.stringify(input));
+    if (!text) return null;
     const parsed = extractJson(text);
     if (!isValidRecommendation(parsed)) throw new Error("invalid shape");
     return { ...parsed, engine: "llm" };
   } catch {
     return null; // always fall back to rules engine
-  } finally {
-    clearTimeout(timer);
   }
 }

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ADMIN_COOKIE, adminToken } from "@/lib/admin";
 import { updateLeadStatus } from "@/lib/leads";
+import { createPortalClient, createLoginToken } from "@/lib/portal";
 
 export async function login(formData: FormData) {
   const token = String(formData.get("token") ?? "");
@@ -28,13 +29,40 @@ export async function logout() {
   redirect("/admin/login");
 }
 
-export async function setLeadStatus(formData: FormData) {
+async function assertAdmin() {
   const store = await cookies();
   if (store.get(ADMIN_COOKIE)?.value !== adminToken()) redirect("/admin/login");
+}
+
+export async function setLeadStatus(formData: FormData) {
+  await assertAdmin();
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "new");
   const note = String(formData.get("note") ?? "").slice(0, 500);
   if (id) await updateLeadStatus(id, status, note || undefined);
   revalidatePath("/admin/leads");
   revalidatePath("/admin");
+}
+
+export async function createClientAccount(formData: FormData) {
+  await assertAdmin();
+  const email = String(formData.get("email") ?? "");
+  const company = String(formData.get("company") ?? "");
+  const project = String(formData.get("project") ?? "");
+  const result = await createPortalClient({ email, company, project });
+  if ("error" in result) {
+    redirect(`/admin/clients?error=${encodeURIComponent(result.error)}`);
+  }
+  revalidatePath("/admin/clients");
+  redirect(`/admin/clients?created=${encodeURIComponent(company)}`);
+}
+
+export async function makeLoginLink(formData: FormData) {
+  await assertAdmin();
+  const email = String(formData.get("email") ?? "");
+  const token = await createLoginToken(email);
+  if (!token) {
+    redirect(`/admin/clients?error=${encodeURIComponent("No account for that email.")}`);
+  }
+  redirect(`/admin/clients?link=${encodeURIComponent(`/portal/auth?token=${token}`)}`);
 }

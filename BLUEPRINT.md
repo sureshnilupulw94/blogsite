@@ -63,13 +63,15 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 
 ## Phase 4 — Client platform
 
-- ⬜ Auth (magic links) + client accounts
-- ⬜ Client workspace: project progress, stages, milestones, next actions
-- ⬜ File vault (brand assets, guidelines, approved copy)
-- ⬜ Feedback tools (click-on-document comments, resolve workflow)
-- ⬜ Approval workflows (DRAFT→INTERNAL→CLIENT→REVISION→APPROVED→FINAL)
-- ⬜ **Brand Brain** & **Business Brain** — per-client knowledge bases (RAG)
-- ⬜ Document intelligence: upload docs → Company Knowledge Profile
+- ✅ **Auth (magic links)** — `/portal/login` creates a single-use, 30-minute token (no passwords). Dev mode shows the link inline; production wires SMTP (env flag `PORTAL_DEV_LINKS=off`). Sessions are HMAC-signed cookies (`PORTAL_SECRET`), 7-day expiry
+- ✅ **Client workspace** — `/portal`: project overview (stage, next action, milestone progress bar), milestone timeline with client **Approve** actions, deliverable statuses (draft→internal→client-review→revision→approved→final), revision requests with notes, comment threads, activity feed
+- ✅ **File vault** — `/portal/files`: categorized uploads (5 MB cap), authenticated downloads via `/portal/files/[id]`, filenames sanitized, private storage under `.data/portal/{slug}/uploads`
+- ✅ **Brand Brain** — `/portal/brain`: per-client knowledge base. Add knowledge (paste/upload text) → auto-chunked; ask questions → retrieval with matched passages, and LLM-grounded answers when a key is configured (`/api/portal/brain`)
+- ✅ **Admin integration** — `/admin/clients`: create portal accounts (email + company + project → seeded workspace), generate login links; demo client auto-seeds (`demo@acme.example` / Acme Logistics with a live project)
+- ⬜ Pixel-anchored feedback (click-on-document comments) — threaded comments shipped; anchoring next
+- ⬜ Business Brain (internal ops knowledge) — Brand Brain shipped; internal counterpart next
+- ⬜ Document intelligence: upload docs → Company Knowledge Profile (OCR/extraction pipeline)
+- ⬜ Email delivery for magic links (SMTP) — dev link mode until then
 
 ## Phase 5 — Agency operating system (internal /studio)
 
@@ -128,10 +130,19 @@ Legend: ✅ shipped in V1 · 🟡 V1 shell (real logic later) · ⬜ planned (ph
 - ✅ Analytics events (`/api/events`) + Studio CRM (`/admin`, `ADMIN_TOKEN`)
 - ✅ 4 mini audits: website (live fetch), presentation, brand, process
 
+## Phase 4 — Client platform (shipped)
+
+- ✅ Magic-link auth (`/portal`, HMAC sessions, no passwords)
+- ✅ Workspace: milestones + approvals, deliverable pipeline, revisions, activity
+- ✅ File vault (uploads + authenticated downloads)
+- ✅ Brand Brain (per-client knowledge base, retrieval + optional LLM answers)
+- ✅ Admin client management (`/admin/clients`) + demo seed (`demo@acme.example`)
+
 ## Build order log
 
 1. ✅ Phase 0+1+2 — foundation, full public website, tools
 2. ✅ Phase 3 — AI concierge, analytics + CRM layer, mini audits
-3. ⬜ Phase 4 — client platform (auth, workspace, Brains)
+3. ✅ Phase 4 — client platform: magic-link auth, workspace + approvals, file vault, Brand Brain, admin client management
+4. ⬜ Phase 5 — internal studio OS
 4. ⬜ Phase 5 — internal studio OS
 5. ⬜ Phase 6/7 — products, community, ops depth

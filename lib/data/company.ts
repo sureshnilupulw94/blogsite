@@ -38,9 +38,10 @@ export const roadmap = [
   { status: "done", title: "AI Project Brief Generator", desc: "Guided builder that turns a sentence into a structured brief." },
   { status: "done", title: "Discovery Engine", desc: "'What are you trying to achieve?' → recommended services." },
   { status: "done", title: "Transformation Index", desc: "Free business maturity assessment with dimension scores." },
-  { status: "doing", title: "AI ROI Calculator", desc: "Estimate what manual processes actually cost." },
-  { status: "next", title: "Client Workspace", desc: "Files, tasks, approvals and progress for every engagement." },
-  { status: "next", title: "Business Knowledge Brain", desc: "Client-side query interface over internal knowledge." },
+  { status: "done", title: "AI ROI Calculator", desc: "Estimate what manual processes actually cost." },
+  { status: "done", title: "Client Workspace", desc: "Magic-link portal: milestones, approvals, files, activity." },
+  { status: "doing", title: "Brand & Business Brain", desc: "Per-client knowledge bases. Brand Brain shipped; Business Brain next." },
+  { status: "next", title: "Feedback on documents", desc: "Click-on-deliverable comments with resolve workflow." },
   { status: "later", title: "Automated proposal system", desc: "Brief → scoped proposal in minutes." },
   { status: "later", title: "Studio OS", desc: "The internal operating system: CRM, projects, content, finance." },
 ];
