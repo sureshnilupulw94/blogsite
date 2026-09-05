@@ -44,8 +44,10 @@ export const roadmap = [
   { status: "done", title: "Document feedback", desc: "Click-on-page notes with open/resolved workflow." },
   { status: "done", title: "Proposal generator", desc: "Brief → scoped, printable proposal with CREATE phases and terms." },
   { status: "done", title: "Studio OS core", desc: "Lead AI analysis, tasks & time, finance margin view, content pipeline." },
-  { status: "next", title: "Client proposal links", desc: "Share proposals with clients via secure links." },
-  { status: "later", title: "Community & products", desc: "Membership, templates, digital products, marketplace." },
+  { status: "done", title: "Client proposal links", desc: "Share proposals via unguessable links — clients accept online." },
+  { status: "done", title: "Products & membership", desc: "Digital products, Agency+ tiers, events and the 2027 research report." },
+  { status: "next", title: "Marketplace checkout", desc: "Stripe-powered store for products, membership and workshop tickets." },
+  { status: "next", title: "Community area", desc: "Member content, office hours booking, forums." },
 ];
 
 export const statusSystems = [

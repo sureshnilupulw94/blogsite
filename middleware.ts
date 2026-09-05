@@ -33,5 +33,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|admin|portal|_next|.*\\..*).*)"],
+  matcher: ["/((?!api|admin|portal|p|_next|.*\\..*).*)"],
 };

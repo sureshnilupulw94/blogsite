@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { getProposal } from "@/lib/proposals";
 import { getService } from "@/lib/data/services";
-import { markProposal } from "../../actions";
+import { markProposal, shareProposal } from "../../actions";
 import PrintButton from "./PrintButton";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +81,24 @@ export default async function ProposalDetail({ params }: { params: Promise<{ id:
       </article>
 
       {p.notes ? <p className="mt-4 rounded-xl border border-line bg-coal p-4 font-mono text-xs text-mute print:hidden">internal notes: {p.notes}</p> : null}
+
+      <section className="mt-4 rounded-2xl border border-line bg-coal p-6 print:hidden">
+        <p className="kicker mb-3">Client share link</p>
+        {p.shareToken ? (
+          <div>
+            <code className="block break-all rounded-xl border border-line/60 bg-ink p-4 font-mono text-xs text-accent">/p/{p.shareToken}</code>
+            <p className="mt-2 font-mono text-[11px] text-mute">Unguessable link — the client can read the proposal and Accept/Decline directly. Shared {p.sharedAt ? new Date(p.sharedAt).toLocaleString() : "—"}.</p>
+          </div>
+        ) : (
+          <form action={shareProposal} className="flex flex-wrap items-center gap-3">
+            <input type="hidden" name="id" value={p.id} />
+            <button type="submit" className="rounded-full bg-accent px-6 py-2.5 font-display text-xs font-semibold text-accent-ink">
+              Create share link (marks as sent)
+            </button>
+            <span className="font-mono text-[11px] text-mute">No password needed — the token is the key.</span>
+          </form>
+        )}
+      </section>
     </div>
   );
 }

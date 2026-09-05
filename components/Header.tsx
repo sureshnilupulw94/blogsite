@@ -43,6 +43,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Dict })
       key: "more", label: dict.nav.more,
       children: [
         [dict.nav.about, "/about"], [dict.nav.careers, "/careers"], [dict.nav.partners, "/partners"],
+        [dict.nav.products, "/products"], [dict.nav.events, "/events"], [dict.nav.research, "/research"],
         [dict.nav.press, "/press"], [dict.nav.roadmap, "/roadmap"], [dict.nav.status, "/status"], [dict.nav.legal, "/legal"],
       ],
     },
