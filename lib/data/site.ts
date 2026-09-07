@@ -1,3 +1,7 @@
+import { publicContact, siteUrl } from "@/lib/config";
+
+const contact = publicContact();
+
 export const site = {
   name: "THE FLAGSHIP",
   shortName: "Flagship",
@@ -6,9 +10,9 @@ export const site = {
   philosophy: "We make complex things clear.",
   description:
     "The Flagship is an AI podcast and studio for writing, design, digital, strategy and transformation. We make complex things clear.",
-  url: "https://theflagship.example",
-  email: "hello@theflagship.example",
-  phone: "+94 77 000 0000",
+  url: siteUrl(),
+  email: contact.email,
+  phone: contact.phone,
   location: "Colombo, Sri Lanka · Working worldwide",
   socials: [
     { label: "Spotify", href: "#" },

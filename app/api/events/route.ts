@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { recordEvent } from "@/lib/leads";
+import { enforceOrigin, enforceRateLimit, readJson } from "@/lib/request-guard";
 
 const ALLOWED_EVENT_NAMES = new Set([
   "pageview",
@@ -14,8 +15,12 @@ const ALLOWED_EVENT_NAMES = new Set([
 ]);
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "events", 60);
+  if (limited) return limited;
+  const origin = enforceOrigin(request);
+  if (origin) return origin;
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await readJson<Record<string, unknown>>(request);
     const type = String(body.type ?? "event");
     const name = String(body.name ?? body.type ?? "");
 

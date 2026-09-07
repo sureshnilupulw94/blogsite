@@ -22,7 +22,7 @@ export default async function AdminLogin({ searchParams }: { searchParams: Promi
           Enter
         </button>
       </form>
-      <p className="mt-6 font-mono text-[11px] text-mute/60">Default dev token: flagship-dev — set ADMIN_TOKEN in production.</p>
+      <p className="mt-6 font-mono text-[11px] text-mute/60">Access is restricted to authorized studio staff.</p>
     </div>
   );
 }

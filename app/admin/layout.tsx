@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import "../globals.css";
 import { ADMIN_COOKIE } from "@/lib/admin";
+import { verifyAdminSession } from "@/lib/admin-session";
 import { logout } from "./actions";
 
 const NAV = [
@@ -19,7 +20,7 @@ const NAV = [
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const store = await cookies();
-  const authed = store.get(ADMIN_COOKIE) !== undefined;
+  const authed = verifyAdminSession(store.get(ADMIN_COOKIE)?.value);
 
   return (
     <div className="min-h-screen bg-ink text-paper">

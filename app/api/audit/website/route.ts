@@ -1,26 +1,14 @@
 import { NextResponse } from "next/server";
 import { recordEvent } from "@/lib/leads";
+import { siteUrl } from "@/lib/config";
+import { enforceOrigin, enforceRateLimit, readJson } from "@/lib/request-guard";
+import { assertPublicUrl } from "@/lib/ssrf";
 
-const UA = "FlagshipAuditBot/1.0 (+https://theflagship.example)";
+const UA = `FlagshipAuditBot/1.0 (+${siteUrl()})`;
 const TIMEOUT_MS = 8_000;
 const MAX_BYTES = 2_500_000;
 
 type Finding = { label: string; severity: "pass" | "warn" | "fail"; note: string };
-
-function isBlockedHost(hostname: string) {
-  const h = hostname.toLowerCase();
-  return (
-    h === "localhost" ||
-    h === "0.0.0.0" ||
-    h.endsWith(".local") ||
-    h.endsWith(".internal") ||
-    /^127\./.test(h) ||
-    /^10\./.test(h) ||
-    /^192\.168\./.test(h) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
-    /^169\.254\./.test(h)
-  );
-}
 
 function analyze(url: string, html: string) {
   const findings: Finding[] = [];
@@ -113,14 +101,15 @@ function analyze(url: string, html: string) {
 }
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "website-audit", 5);
+  if (limited) return limited;
+  const origin = enforceOrigin(request);
+  if (origin) return origin;
   let target: URL;
   try {
-    const body = (await request.json()) as { url?: string };
+    const body = await readJson<{ url?: string }>(request);
     const raw = String(body.url ?? "").trim().slice(0, 300);
-    const withProto = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-    target = new URL(withProto);
-    if (!["http:", "https:"].includes(target.protocol)) throw new Error("bad protocol");
-    if (isBlockedHost(target.hostname)) throw new Error("blocked host");
+    target = await assertPublicUrl(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
   } catch {
     return NextResponse.json({ ok: false, error: "Enter a valid public URL (e.g. example.com)." }, { status: 400 });
   }
@@ -128,11 +117,19 @@ export async function POST(request: Request) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(target.toString(), {
-      signal: controller.signal,
-      redirect: "follow",
-      headers: { "User-Agent": UA, Accept: "text/html,*/*" },
-    });
+    let res: Response | null = null;
+    for (let redirects = 0; redirects <= 3; redirects += 1) {
+      res = await fetch(target.toString(), {
+        signal: controller.signal,
+        redirect: "manual",
+        headers: { "User-Agent": UA, Accept: "text/html,*/*" },
+      });
+      if (![301, 302, 303, 307, 308].includes(res.status)) break;
+      const location = res.headers.get("location");
+      if (!location || redirects === 3) throw new Error("unsafe redirect");
+      target = await assertPublicUrl(new URL(location, target).toString());
+    }
+    if (!res) throw new Error("no response");
     if (!res.ok) {
       return NextResponse.json({ ok: false, error: `The site responded with ${res.status}. Try the homepage URL.` }, { status: 200 });
     }

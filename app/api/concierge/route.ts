@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { recordEvent } from "@/lib/leads";
+import { enforceOrigin, enforceRateLimit, readJson } from "@/lib/request-guard";
 import { recommendByRules, type ConciergeInput } from "@/lib/concierge/engine";
 import { recommendWithLLM } from "@/lib/concierge/llm";
 
@@ -10,8 +11,12 @@ function clean(value: unknown, max = 300): string | undefined {
 }
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "concierge", 10);
+  if (limited) return limited;
+  const origin = enforceOrigin(request);
+  if (origin) return origin;
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await readJson<Record<string, unknown>>(request);
     const input: ConciergeInput = {
       goal: clean(body.goal, 120),
       blocker: clean(body.blocker, 60),

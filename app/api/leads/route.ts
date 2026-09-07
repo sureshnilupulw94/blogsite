@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { recordLead } from "@/lib/leads";
 import { smtpConfigured, sendMail } from "@/lib/mailer";
+import { enforceOrigin, enforceRateLimit, readJson } from "@/lib/request-guard";
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "leads", 20);
+  if (limited) return limited;
+  const origin = enforceOrigin(request);
+  if (origin) return origin;
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await readJson<Record<string, unknown>>(request);
     const sanitized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) {
       if (typeof value === "string") sanitized[key] = value.slice(0, 5000);

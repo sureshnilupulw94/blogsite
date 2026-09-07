@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types lib/*.test.ts tests/*.test.ts",
+    "test:watch": "node --test --watch --experimental-strip-types lib/*.test.ts tests/*.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

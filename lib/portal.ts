@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { portalSecret } from "@/lib/config";
 
 const portalDir = path.join(process.cwd(), ".data", "portal");
 
@@ -43,7 +44,7 @@ type LoginToken = { token: string; email: string; slug: string; exp: number; use
 /* ---------- sessions (HMAC-signed cookie) ---------- */
 
 function secret() {
-  return process.env.PORTAL_SECRET ?? "flagship-portal-dev-secret";
+  return portalSecret();
 }
 
 export function signSession(email: string, slug: string) {
@@ -100,6 +101,13 @@ async function writeJson(rel: string, data: unknown) {
   const full = path.join(portalDir, rel);
   await mkdir(path.dirname(full), { recursive: true });
   await writeFile(full, JSON.stringify(data, null, 2), "utf8");
+}
+
+async function readTokens() {
+  const tokens = await readJson<LoginToken[]>("tokens.json", []);
+  const active = tokens.filter((token) => !token.used && token.exp > Date.now());
+  if (active.length !== tokens.length) await writeJson("tokens.json", active);
+  return active;
 }
 
 /* ---------- clients ---------- */
@@ -303,7 +311,7 @@ export function searchBrain(brain: BrainEntry[], query: string, limit = 6) {
 export async function createLoginToken(email: string): Promise<string | null> {
   const client = await getClientByEmail(email);
   if (!client) return null;
-  const tokens = await readJson<LoginToken[]>("tokens.json", []);
+  const tokens = await readTokens();
   const token = randomBytes(24).toString("hex");
   tokens.push({ token, email: client.email, slug: client.slug, exp: Date.now() + TOKEN_TTL_MS, used: false });
   await writeJson("tokens.json", tokens);
@@ -311,11 +319,11 @@ export async function createLoginToken(email: string): Promise<string | null> {
 }
 
 export async function consumeLoginToken(token: string): Promise<{ email: string; slug: string } | null> {
-  const tokens = await readJson<LoginToken[]>("tokens.json", []);
-  const hit = tokens.find((t) => t.token === token && !t.used && t.exp > Date.now());
+  const tokens = await readTokens();
+  const hit = tokens.find((t) => t.token === token);
   if (!hit) return null;
-  hit.used = true;
-  await writeJson("tokens.json", tokens);
+  const remaining = tokens.filter((t) => t.token !== token);
+  await writeJson("tokens.json", remaining);
   return { email: hit.email, slug: hit.slug };
 }
 

@@ -3,7 +3,9 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { ADMIN_COOKIE, adminToken } from "@/lib/admin";
+import { ADMIN_COOKIE } from "@/lib/admin";
+import { signAdminSession, verifyAdminSession } from "@/lib/admin-session";
+import { adminSecret } from "@/lib/config";
 import { updateLeadStatus, readLeadById, readJsonStore, writeJsonStore } from "@/lib/leads";
 import { createPortalClient, createLoginToken, mutateWorkspace, pushActivity, type DeliverableStatus } from "@/lib/portal";
 import { analyzeLead, type LeadAnalysis } from "@/lib/analysis";
@@ -12,11 +14,11 @@ import { draftFromIdea } from "@/lib/repurpose";
 
 export async function login(formData: FormData) {
   const token = String(formData.get("token") ?? "");
-  if (token !== adminToken()) {
+  if (token !== adminSecret()) {
     redirect("/admin/login?error=1");
   }
   const store = await cookies();
-  store.set(ADMIN_COOKIE, token, {
+  store.set(ADMIN_COOKIE, signAdminSession(), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -34,7 +36,7 @@ export async function logout() {
 
 async function assertAdmin() {
   const store = await cookies();
-  if (store.get(ADMIN_COOKIE)?.value !== adminToken()) redirect("/admin/login");
+  if (!verifyAdminSession(store.get(ADMIN_COOKIE)?.value)) redirect("/admin/login");
 }
 
 export async function setLeadStatus(formData: FormData) {
