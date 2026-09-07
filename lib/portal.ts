@@ -4,6 +4,7 @@ import path from "path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { portalSecret } from "@/lib/config";
+import { assertStorageReady } from "@/lib/storage";
 
 const portalDir = path.join(process.cwd(), ".data", "portal");
 
@@ -98,6 +99,7 @@ async function readJson<T>(rel: string, fallback: T): Promise<T> {
 }
 
 async function writeJson(rel: string, data: unknown) {
+  assertStorageReady();
   const full = path.join(portalDir, rel);
   await mkdir(path.dirname(full), { recursive: true });
   await writeFile(full, JSON.stringify(data, null, 2), "utf8");

@@ -1,5 +1,6 @@
 import { mkdir, appendFile, readFile, writeFile } from "fs/promises";
 import path from "path";
+import { assertStorageReady } from "./storage.ts";
 
 const dataDir = path.join(process.cwd(), ".data");
 
@@ -7,6 +8,7 @@ export type LeadRecord = { id: string; at: string; status?: string; note?: strin
 export type EventRecord = { at: string; type: string; name?: string; path?: string; locale?: string } & Record<string, unknown>;
 
 async function ensureDir() {
+  assertStorageReady();
   await mkdir(dataDir, { recursive: true });
 }
 
