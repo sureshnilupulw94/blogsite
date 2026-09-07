@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ADMIN_COOKIE } from "@/lib/admin";
@@ -11,10 +11,24 @@ import { createPortalClient, createLoginToken, mutateWorkspace, pushActivity, ty
 import { analyzeLead, type LeadAnalysis } from "@/lib/analysis";
 import { buildProposal, saveProposal, setProposalStatus, createShareToken, type ProposalStatus } from "@/lib/proposals";
 import { draftFromIdea } from "@/lib/repurpose";
+import { enforceOrigin, enforceRateLimit } from "@/lib/request-guard";
+import { adminLoginDecision } from "@/lib/admin-auth-policy";
 
 export async function login(formData: FormData) {
+  const requestHeaders = await headers();
+  const request = new Request("http://admin.local", {
+    headers: {
+      origin: requestHeaders.get("origin") ?? "",
+      "x-forwarded-for": requestHeaders.get("x-forwarded-for") ?? requestHeaders.get("x-real-ip") ?? "unknown",
+    },
+  });
+  if (enforceOrigin(request) || enforceRateLimit(request, "admin-login", 5, 15 * 60_000)) {
+    redirect("/admin/login?error=1");
+  }
+
   const token = String(formData.get("token") ?? "");
-  if (token !== adminSecret()) {
+  const decision = adminLoginDecision(token, adminSecret(), true);
+  if (!decision.ok) {
     redirect("/admin/login?error=1");
   }
   const store = await cookies();
