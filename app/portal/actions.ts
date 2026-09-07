@@ -16,6 +16,8 @@ import {
   MAX_UPLOAD_BYTES,
 } from "@/lib/portal";
 import { smtpConfigured, sendMail, magicLinkEmail } from "@/lib/mailer";
+import { enforceRateLimit } from "@/lib/request-guard";
+import { canExposeDevLink } from "@/lib/portal-auth-policy";
 import { extractText, worthIndexing } from "@/lib/docintel";
 
 export type MagicLinkState = { ok: boolean; message: string; devLink?: string } | null;
@@ -28,6 +30,11 @@ async function baseUrl() {
 }
 
 export async function requestMagicLink(_prev: MagicLinkState, formData: FormData): Promise<MagicLinkState> {
+  const requestHeaders = await headers();
+  const client = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || requestHeaders.get("x-real-ip") || "unknown";
+  const limited = enforceRateLimit(new Request("http://portal.local", { headers: { "x-forwarded-for": client } }), "portal-login", 5, 15 * 60_000);
+  if (limited) return { ok: false, message: "Too many login-link requests. Try again later." };
+
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email.includes("@")) return { ok: false, message: "Enter a valid email address." };
 
@@ -37,7 +44,7 @@ export async function requestMagicLink(_prev: MagicLinkState, formData: FormData
   }
 
   const link = `${await baseUrl()}/portal/auth?token=${token}`;
-  const hideDev = process.env.PORTAL_DEV_LINKS === "off";
+  const exposeDevLink = canExposeDevLink({ nodeEnv: process.env.NODE_ENV, flag: process.env.PORTAL_DEV_LINKS });
 
   if (smtpConfigured()) {
     const mail = magicLinkEmail(link);
@@ -46,17 +53,17 @@ export async function requestMagicLink(_prev: MagicLinkState, formData: FormData
       return {
         ok: true,
         message: "Login link sent — check your inbox. It expires in 30 minutes.",
-        devLink: hideDev ? undefined : link,
+        devLink: exposeDevLink ? link : undefined,
       };
     }
     return {
       ok: true,
-      message: "The email couldn't be sent just now — use the link below this time.",
-      devLink: link,
+      message: exposeDevLink ? "The email couldn't be sent just now — use the link below this time." : "The email couldn't be sent just now. Ask the studio to resend it.",
+      devLink: exposeDevLink ? link : undefined,
     };
   }
 
-  if (hideDev) {
+  if (!exposeDevLink) {
     return { ok: true, message: "Login link created but email isn't configured (SMTP_HOST/SMTP_FROM). Ask the studio." };
   }
   return {
